@@ -1,0 +1,6 @@
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+CompileFlags:
+  CompilationDatabase: build/
+  Remove: [-cfg=*, -exec_root=*, -inputs=*]

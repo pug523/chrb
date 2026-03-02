@@ -1,0 +1,121 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+    paths: &ci_paths
+      - src/**
+      - tests/**
+      - third_party/**
+      - .github/workflows/**
+      - xmake.lua
+      - CPPLINT.cfg
+      - uv.lock
+      - .clang-tidy
+  pull_request:
+    branches: [ main ]
+    paths: *ci_paths
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            plat: linux
+            arch: x86_64
+            stdlib: libc++
+          - os: windows-2025-vs2026
+            plat: windows
+            arch: x64
+            stdlib: msvc
+          - os: macos-26
+            plat: macosx
+            arch: arm64
+            stdlib: libc++
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    name: build and test (${{ matrix.os }})
+    env:
+      CC: clang
+      CXX: clang++
+      XMAKE_COLORTERM: color256
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: install uv
+        uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098
+        with:
+          # https://github.com/astral-sh/uv/tags
+          version: "0.10.7"
+          enable-cache: true
+
+      - name: sync python dependencies with uv
+        run: uv sync
+        shell: bash
+
+      - name: setup xmake
+        uses: xmake-io/github-action-setup-xmake@cc0f56c35b75d0975ed5d9e29005fae707721cd5
+        with:
+          # https://github.com/xmake-io/xmake/tags
+          xmake-version: "3.0.7"
+          actions-cache-folder: ".xmake-cache"
+          actions-cache-key: "${{ matrix.os }}-xmake"
+          package-cache: true
+          package-cache-key: "${{ matrix.os }}-packages"
+          build-cache: true
+          build-cache-path: "build/.build_cache"
+          build-cache-key: "${{ matrix.os }}-build"
+          project-path: "."
+
+      - name: install llvm tools
+        uses: KyleMayes/install-llvm-action@ebc0426251bc40c7cd31162802432c68818ab8f0
+        with:
+          # https://github.com/KyleMayes/install-llvm-action/blob/master/assets.json
+          version: "21.1.8"
+
+      - name: configure
+        shell: bash
+        run: |
+          if [[ "${{ matrix.plat }}" == "linux" ]]; then
+            # echo "LD_LIBRARY_PATH=$LLVM_PATH/lib:$LLVM_PATH/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
+            sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
+            sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
+          # elif [[ "${{ matrix.plat }}" == "macosx" ]]; then
+          #   echo "DYLD_LIBRARY_PATH=$LLVM_PATH/lib" >> $GITHUB_ENV
+          fi
+
+          xmake config -c -y -v \
+            -m debug \
+            --coverage=y \
+            --sanitizers=y \
+            --toolchain=llvm \
+            -p "${{ matrix.plat }}" \
+            -a "${{ matrix.arch }}" \
+            --stdlib="${{ matrix.stdlib }}"
+
+      - name: build alcy
+        shell: bash
+        run: xmake build alcy
+
+      - name: build tests and run
+        shell: bash
+        run: xmake run tests
+
+      - name: upload build artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: "${{ matrix.os }}"
+          path: out/*
+
+      - name: analyze statically
+        if: matrix.os == 'ubuntu-24.04'
+        shell: bash
+        run: |
+          xmake check api
+          xmake check clang
+          xmake analyze
+          xmake lint
+

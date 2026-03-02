@@ -1,0 +1,28 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.{cc,h,S}]
+max_line_length = 80
+
+[*.py]
+indent_size = 4
+max_line_length = 88 # black formatter
+
+[*.md]
+# double whitespace at end of line
+# denotes a line break in Markdown
+trim_trailing_whitespace = false
+
+[*.{toml,yml,json}]
+indent_style = space
+indent_size = 2
+
+[LICENSE]
+insert_final_newline = false

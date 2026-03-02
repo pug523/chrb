@@ -1,0 +1,22 @@
+BasedOnStyle: Chromium
+
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Inline
+
+Standard: c++20
+
+InsertBraces: true
+InsertNewlineAtEOF: true
+
+KeepEmptyLines:
+  AtEndOfFile: true
+  AtStartOfBlock: false
+  AtStartOfFile: false
+
+IncludeBlocks: Regroup
+
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+SpaceBeforeParens: ControlStatements

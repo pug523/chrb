@@ -8,6 +8,6 @@
 
 namespace core {
 
-i32 execute_rollback(i32 argc, char** argv);
+i32 rollback(i32 argc, char** argv);
 
 }

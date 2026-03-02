@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <string>
 #include <string_view>
 
 #include "core/check.h"
@@ -32,7 +31,7 @@ inline Dimension str_to_dimension(const std::string_view s) {
   }
 }
 
-inline const char* dimension_path(Dimension d) {
+inline const char* dimension_path_with_slash(Dimension d) {
   switch (d) {
     case Dimension::OverWorld: return "";
     case Dimension::Nether: return "DIM-1/";

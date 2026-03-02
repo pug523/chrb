@@ -6,10 +6,11 @@
 
 #include <optional>
 #include <string>
+#include <thread>
 
 #include "core/core.h"
-#include "core/dimension.h"
-#include "core/rollback_type.h"
+#include "core/region/dimension.h"
+#include "core/region/rollback_type.h"
 
 namespace core {
 
@@ -17,11 +18,12 @@ struct RollbackConfig {
   std::string src_world = "";
   std::string dest_world = "";
   std::string dim_str = "overworld";
-  std::string type_str = "region";
+  std::string type_str = "all";
   std::optional<i32> min_x = 0;
   std::optional<i32> max_x = 0;
   std::optional<i32> min_z = 0;
   std::optional<i32> max_z = 0;
+  i32 num_threads = static_cast<i32>(std::thread::hardware_concurrency()) / 2;
   Dimension dimension = Dimension::Unknown;
   RollbackType type = RollbackType::Unknown;
   bool verbose = false;

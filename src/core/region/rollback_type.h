@@ -17,6 +17,7 @@ enum class RollbackType : u8 {
   Region,
   Entities,
   Poi,
+  All,
 };
 
 inline RollbackType str_to_rollback_type(const std::string_view s) {
@@ -27,6 +28,8 @@ inline RollbackType str_to_rollback_type(const std::string_view s) {
     return RollbackType::Entities;
   } else if (s == "poi") {
     return RollbackType::Poi;
+  } else if (s == "all") {
+    return RollbackType::All;
   } else {
     return RollbackType::Unknown;
   }

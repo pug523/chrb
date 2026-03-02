@@ -6,11 +6,12 @@
 
 #include <print>
 #include <string>
+#include <string_view>
 #include <utility>
 
-#include "core/args/colored_prefix.h"
-#include "core/console.h"
-#include "core/style_util.h"
+#include "core/cli/colored_prefix.h"
+#include "core/cli/console.h"
+#include "core/cli/style_util.h"
 
 namespace core {
 
@@ -21,58 +22,87 @@ ArgParser::ArgParser(std::string_view program_name,
 
 void ArgParser::add(ArgDef def) {
   dcheck(!(def.required && !def.takes_value));
+  long_name_to_defs_index_[def.long_name] = defs_.size();
+  short_name_to_defs_index_[def.short_name] = defs_.size();
   defs_.push_back(std::move(def));
   matched_.push_back(false);
 }
 
 const ArgDef* ArgParser::find(std::string_view token) const {
-  for (const auto& d : defs_) {
-    if (token == d.long_name ||
-        (!d.short_name.empty() && token == d.short_name)) {
-      return &d;
-    }
+  const auto& long_itr = long_name_to_defs_index_.find(token);
+  if (long_itr != long_name_to_defs_index_.end()) {
+    return &defs_[long_itr->second];
   }
+  const auto& short_itr = short_name_to_defs_index_.find(token);
+  if (short_itr != short_name_to_defs_index_.end()) {
+    return &defs_[short_itr->second];
+  }
+  // for (const auto& d : defs_) {
+  //   if (token == d.long_name ||
+  //       (!d.short_name.empty() && token == d.short_name)) {
+  //     return &d;
+  //   }
+  // }
   return nullptr;
 }
 
 ParseResult ArgParser::parse(i32 argc, char** argv) {
   ParseResult result = ParseResult::Ok;
 
+  if (argc == 1) {
+    print_help();
+    return ParseResult::PrintHelp;
+  }
+
   for (i32 i = 1; i < argc; ++i) {
     const std::string_view token = argv[i];
+    const size_t eq_pos = token.find('=');
     const ArgDef* def = find(token);
 
     if (!def) {
-      ColoredPrefix ep;
-      ep.init_error();
-      std::println(stderr, "{}unknown argument: {}", ep.str(), token);
+      ColoredPrefix cp;
+      cp.init_error();
+      std::println(stderr, "{}unknown argument: '{}'", cp.err(), token);
       result = ParseResult::UnknownArgument;
       continue;
-    }
-
-    if (!def->takes_value) {
-      def->on_match({});
-      // --help short-circuits
-      if (token == "--help" || token == "-h") {
-        print_help();
-        return ParseResult::PrintHelp;
-      } else if (token == "--version" || token == "-v") {
-        print_version();
-        return ParseResult::PrintVersion;
+    } else if (def->takes_value) {
+      std::string_view value;
+      if (eq_pos != std::string_view::npos) {
+        value = token.substr(eq_pos + 1);
+      } else if (i + 1 < argc) {
+        value = argv[++i];
+      } else {
+        ColoredPrefix cp;
+        cp.init_error();
+        std::println(stderr, "{}argument '{}' requires a value", cp.err(),
+                     token);
+        continue;
       }
-      continue;
-    }
+      def->on_match(value);
+      matched_[static_cast<size_t>(def - defs_.data())] = true;
+    } else if (!def->takes_value) {
+      if (eq_pos != std::string_view::npos) {
+        ColoredPrefix cp;
+        cp.init_error();
+        std::println(stderr, "{}argument '{}' does not take a value", cp.err(),
+                     token);
+      } else {
+        def->on_match({});
+        // --help short-circuits
+        if (token == "--help" || token == "-h") {
+          print_help();
+          return ParseResult::PrintHelp;
+        } else if (token == "--version" || token == "-v") {
+          print_version();
+          return ParseResult::PrintVersion;
+        }
+      }
 
-    // needs a value token
-    if (i + 1 >= argc) {
-      ColoredPrefix ep;
-      ep.init_error();
-      std::println(stderr, "{}argument {} requires a value", ep.str(), token);
-      result = ParseResult::MissingValue;
+    } else {
+      // unreachable
+      dcheck(false);
       continue;
     }
-    def->on_match(argv[++i]);
-    matched_[static_cast<size_t>(def - defs_.data())] = true;
   }
 
   return result;
@@ -82,9 +112,9 @@ bool ArgParser::validate_required() const {
   bool ok = true;
   for (size_t i = 0; i < defs_.size(); ++i) {
     if (defs_[i].required && !matched_[i]) {
-      ColoredPrefix ep;
-      ep.init_error();
-      std::println(stderr, "{}required argument {} not provided", ep.str(),
+      ColoredPrefix cp;
+      cp.init_error();
+      std::println(stderr, "{}required argument '{}' not provided", cp.err(),
                    defs_[i].long_name);
       ok = false;
     }
@@ -108,7 +138,7 @@ void ArgParser::print_help() const {
   if (color) {
     std::print("{}{}", kBold, kRed);
   }
-  std::print("\n                     {}\n\n", program_name_);
+  std::print("                     {}\n\n", program_name_);
   if (color) {
     std::print("{}", kReset);
   }

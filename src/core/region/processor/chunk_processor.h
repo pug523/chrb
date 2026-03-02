@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include <string>
+#include <fstream>
+#include <string_view>
 
 #include "core/core.h"
 
@@ -21,15 +22,22 @@ class ChunkProcessor {
   ChunkProcessor(ChunkProcessor&&) noexcept = default;
   ChunkProcessor& operator=(ChunkProcessor&&) noexcept = default;
 
-  void process(i32 cx, i32 cz);
+  void init(i32 rx,
+            i32 rz,
+            std::fstream* src,
+            std::fstream* dest,
+            bool verbose);
 
-  std::string_view src_dir;
-  std::string_view dest_dir;
+  bool process(i32 cx, i32 cz);
+
+ private:
+  i32 chunk_index(i32 chunk_x, i32 chunk_z);
+
+  i32 rx_;
+  i32 rz_;
+  std::fstream* src_ = nullptr;
+  std::fstream* dest_ = nullptr;
+  bool verbose_ = false;
 };
-
-void process_chunk(i32 cx,
-                   i32 cz,
-                   const std::string& src_dir,
-                   const std::string& dest_dir);
 
 }  // namespace core

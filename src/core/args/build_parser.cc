@@ -5,13 +5,13 @@
 #include "core/args/build_parser.h"
 
 #include <print>
-#include <string>
+#include <string_view>
 
-#include "core/args/colored_prefix.h"
-#include "core/console.h"
-#include "core/dimension.h"
-#include "core/rollback_type.h"
-#include "core/style_util.h"
+#include "core/cli/colored_prefix.h"
+#include "core/cli/console.h"
+#include "core/cli/style_util.h"
+#include "core/region/dimension.h"
+#include "core/region/rollback_type.h"
 
 namespace core {
 
@@ -19,6 +19,30 @@ namespace core {
 #ifndef PROJECT_VERSION
 #define PROJECT_VERSION "0.0.0"
 #endif
+
+namespace {
+
+bool safe_stoi(std::string_view str, i32* dest) {
+  auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), *dest);
+
+  if (ec == std::errc()) {
+    return true;
+  }
+  ColoredPrefix e;
+  e.init_error();
+  if (ec == std::errc::invalid_argument) {
+    std::println(stderr, "{}invalid format (expected number)", e.err());
+    return false;
+  } else if (ec == std::errc::result_out_of_range) {
+    std::println(stderr, "{}out of range", e.err());
+    return false;
+  } else {
+    std::println(stderr, "{}unknown error (expected number)", e.err());
+    return false;
+  }
+}
+
+}  // namespace
 
 ArgParser build_arg_parser(RollbackConfig* config) {
   ArgParser p("chrb", PROJECT_VERSION,
@@ -50,17 +74,17 @@ ArgParser build_arg_parser(RollbackConfig* config) {
       .meta = "<overworld|nether|end>",
       .description = "target dimension",
       .takes_value = true,
-      .required = true,
+      .required = false,
       .on_match = [config](std::string_view v) { config->dim_str = v; },
   });
 
   p.add({
       .long_name = "--type",
       .short_name = "-t",
-      .meta = "<region|entities|poi>",
+      .meta = "<region|entities|poi|all>",
       .description = "rollback type",
       .takes_value = true,
-      .required = true,
+      .required = false,
       .on_match = [config](std::string_view v) { config->type_str = v; },
   });
 
@@ -73,7 +97,9 @@ ArgParser build_arg_parser(RollbackConfig* config) {
       .required = true,
       .on_match =
           [config](std::string_view v) {
-            config->min_x = std::stoi(std::string{v});
+            if (!safe_stoi(v, &*config->min_x)) {
+              std::exit(1);
+            }
           },
   });
 
@@ -86,7 +112,9 @@ ArgParser build_arg_parser(RollbackConfig* config) {
       .required = true,
       .on_match =
           [config](std::string_view v) {
-            config->max_x = std::stoi(std::string{v});
+            if (!safe_stoi(v, &*config->max_x)) {
+              std::exit(1);
+            }
           },
   });
 
@@ -99,7 +127,9 @@ ArgParser build_arg_parser(RollbackConfig* config) {
       .required = true,
       .on_match =
           [config](std::string_view v) {
-            config->min_z = std::stoi(std::string{v});
+            if (!safe_stoi(v, &*config->min_z)) {
+              std::exit(1);
+            }
           },
   });
 
@@ -112,7 +142,24 @@ ArgParser build_arg_parser(RollbackConfig* config) {
       .required = true,
       .on_match =
           [config](std::string_view v) {
-            config->max_z = std::stoi(std::string{v});
+            if (!safe_stoi(v, &*config->max_z)) {
+              std::exit(1);
+            }
+          },
+  });
+
+  p.add({
+      .long_name = "--num_threads",
+      .short_name = "-j",
+      .meta = "<n>",
+      .description = "number of worker threads",
+      .takes_value = true,
+      .required = false,
+      .on_match =
+          [config](std::string_view v) {
+            if (!safe_stoi(v, &config->num_threads)) {
+              std::exit(1);
+            }
           },
   });
 

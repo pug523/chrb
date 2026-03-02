@@ -6,14 +6,14 @@ ENV XMAKE_COLORTERM=color256
 
 RUN apt-get update && apt-get install -y \
     curl \
-    unzip \
-    wget \
+    build-essential \
     git \
     libreadline-dev \
-    build-essential \
-    lsb-release \
-    software-properties-common \
-    gnupg \
+    # unzip \
+    # wget \
+    # lsb-release \
+    # software-properties-common \
+    # gnupg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -29,6 +29,6 @@ WORKDIR /app
 
 COPY . .
 
-RUN xmake config -y && xmake -y
+RUN xmake config -y -m release && xmake build
 
 CMD ["xmake", "run"]

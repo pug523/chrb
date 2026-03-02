@@ -5,7 +5,7 @@
 #pragma once
 
 #include "core/core.h"
-#include "core/rollback_config.h"
+#include "core/region/rollback_config.h"
 
 namespace core {
 
@@ -19,6 +19,7 @@ enum class ArgStatus : u8 {
   InvalidDimension,
   InvalidRollbackType,
   ChunkRangeMissing,
+  InvalidNumThreads,
 };
 
 ArgStatus parse_args(i32 argc, char** argv, RollbackConfig* config);

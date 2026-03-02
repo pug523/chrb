@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 
+#include "core/check.h"
+
 namespace core {
 
 class ColoredPrefix {
@@ -20,12 +22,28 @@ class ColoredPrefix {
   ColoredPrefix(ColoredPrefix&&) noexcept = default;
   ColoredPrefix& operator=(ColoredPrefix&&) noexcept = default;
 
-  void init_error();
+  void init_info();
   void init_warn();
-  std::string_view str() const { return formatted; }
+  void init_error();
+
+  inline std::string_view info() const {
+    dcheck(initialized);
+    return std::string_view{info_formatted};
+  }
+  inline std::string_view warn() const {
+    dcheck(initialized);
+    return std::string_view{warn_formatted};
+  }
+  inline std::string_view err() const {
+    dcheck(initialized);
+    return std::string_view{err_formatted};
+  }
 
  private:
-  std::string formatted;
+  std::string info_formatted;
+  std::string warn_formatted;
+  std::string err_formatted;
+  bool initialized = false;
 };
 
 }  // namespace core

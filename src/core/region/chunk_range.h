@@ -4,12 +4,15 @@
 
 #pragma once
 
-#include "core/args/parser.h"
 #include "core/core.h"
-#include "core/region/rollback_config.h"
 
 namespace core {
 
-ArgParser build_arg_parser(RollbackConfig* config);
+struct ChunkRange {
+  i32 min_x;
+  i32 min_z;
+  i32 max_x;
+  i32 max_z;
+};
 
 }  // namespace core

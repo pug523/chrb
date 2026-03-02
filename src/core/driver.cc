@@ -1,0 +1,103 @@
+// Copyright 2026 pugur
+// This source code is licensed under the Apache License, Version 2.0
+// which can be found in the LICENSE file.
+
+#include "core/driver.h"
+
+#include <sys/stat.h>
+
+#include <algorithm>
+#include <print>
+#include <utility>
+#include <vector>
+
+#include "core/cli/parse_args.h"
+#include "core/file_util.h"
+#include "core/region/dimension.h"
+#include "core/region/processor/chunk_processor.h"
+#include "core/region/rollback_config.h"
+#include "core/region/rollback_executor.h"
+
+namespace core {
+
+i32 rollback(i32 argc, char** argv) {
+  RollbackConfig config{};
+  const ArgStatus arg_result = parse_args(argc, argv, &config);
+  if (arg_result == ArgStatus::PrintHelp ||
+      arg_result == ArgStatus::PrintVersion) {
+    return 0;
+  } else if (arg_result != ArgStatus::Success) {
+    return static_cast<i32>(arg_result);
+  }
+
+  if (config.src_world.back() != '/') {
+    config.src_world.push_back('/');
+  }
+
+  {
+    bool dir_exists = true;
+    if (!is_dir(config.src_world)) {
+      std::println(stderr, "directory not found: {}", config.src_world);
+      dir_exists = false;
+    } else if (!is_dir(config.dest_world)) {
+      std::println(stderr, "directory not found: {}", config.dest_world);
+      dir_exists = false;
+    }
+    if (!dir_exists) {
+      return 1;
+    }
+  }
+
+  if (config.verbose) {
+    std::print(R"(
+[rollback_config]
+
+src_world = {}
+dest_world = {}
+dim_str = {}
+type_str = {}
+min_x = {}
+max_x = {}
+min_z = {}
+max_z = {}
+num_threads = {}
+verbose = {}
+
+)",
+               config.src_world, config.dest_world, config.dim_str,
+               config.type_str, *config.min_x, *config.max_x, *config.min_z,
+               *config.max_z, config.num_threads, config.verbose);
+  }
+
+  RollbackExecutor executor;
+  executor.init(std::move(config));
+
+  executor.start();
+  executor.flush();
+
+  const u64 successfull_region_count = executor.successfull_region_count();
+  const u64 failed_region_count = executor.failed_region_count();
+  const u64 successfull_chunk_count = executor.successfull_chunk_count();
+  const u64 failed_chunk_count = executor.failed_chunk_count();
+
+  i32 result = 0;
+  if (successfull_region_count > 0) {
+    std::println("{:5} full regions processed successfully",
+                 successfull_region_count);
+  }
+  if (failed_region_count > 0) {
+    std::println("{:5} full regions failed", failed_region_count);
+    ++result;
+  }
+  if (successfull_chunk_count > 0) {
+    std::println("{:5} chunks processed successfully", successfull_chunk_count);
+  }
+  if (failed_chunk_count > 0) {
+    std::println("{:5} chunks failed", failed_chunk_count);
+    ++result;
+  }
+
+  return result;
+}
+
+}  // namespace core

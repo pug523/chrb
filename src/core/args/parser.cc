@@ -4,14 +4,17 @@
 
 #include "core/args/parser.h"
 
+#include <cstddef>
 #include <print>
 #include <string>
 #include <string_view>
 #include <utility>
 
+#include "core/check.h"
 #include "core/cli/console.h"
 #include "core/cli/log_prefix.h"
 #include "core/cli/style_util.h"
+#include "core/core.h"
 
 namespace core {
 

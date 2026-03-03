@@ -4,9 +4,14 @@
 
 #include "core/mem/mapped_file.h"
 
+#include <sys/types.h>
+
+#include <cstddef>
 #include <print>
+#include <string_view>
 
 #include "core/cli/log_prefix.h"
+#include "core/core.h"
 
 #ifdef IS_PLAT_WINDOWS
 #include <windows.h>

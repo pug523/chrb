@@ -4,6 +4,11 @@
 
 #include "core/region/location.h"
 
+#include <cstddef>
+
+#include "core/core.h"
+#include "core/mem/mapped_file.h"
+
 namespace core {
 
 LocationEntry read_location(const MappedFile& file, i32 index) {

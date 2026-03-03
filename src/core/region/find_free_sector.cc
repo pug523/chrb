@@ -4,6 +4,7 @@
 
 #include "core/region/find_free_sector.h"
 
+#include <cstddef>
 #include <vector>
 
 #include "core/core.h"

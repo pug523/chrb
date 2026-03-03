@@ -4,19 +4,15 @@
 
 #include "core/driver.h"
 
-#include <sys/stat.h>
-
-#include <algorithm>
+#include <format>
 #include <print>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "core/cli/log_prefix.h"
 #include "core/cli/parse_args.h"
+#include "core/core.h"
 #include "core/file_util.h"
-#include "core/region/dimension.h"
-#include "core/region/processor/chunk_processor.h"
 #include "core/region/rollback_config.h"
 #include "core/region/rollback_executor.h"
 

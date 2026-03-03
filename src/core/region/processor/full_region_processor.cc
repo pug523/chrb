@@ -4,16 +4,21 @@
 
 #include "core/region/processor/full_region_processor.h"
 
+#include <sys/types.h>
+
+#include <cstddef>
+#include <cstring>
 #include <print>
 #include <string>
 #include <string_view>
+
+#include "core/core.h"
 
 #ifdef IS_PLAT_WINDOWS
 #include <windows.h>
 #else
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #endif
 

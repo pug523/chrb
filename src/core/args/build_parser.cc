@@ -5,14 +5,15 @@
 #include "core/args/build_parser.h"
 
 #include <charconv>
+#include <cstdlib>
 #include <print>
 #include <string_view>
+#include <system_error>
 
-#include "core/cli/console.h"
+#include "core/args/parser.h"
 #include "core/cli/log_prefix.h"
-#include "core/cli/style_util.h"
-#include "core/region/dimension.h"
-#include "core/region/rollback_type.h"
+#include "core/core.h"
+#include "core/region/rollback_config.h"
 
 namespace core {
 

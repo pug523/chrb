@@ -4,6 +4,7 @@
 
 #include "core/region/build_sector_map.h"
 
+#include <cstddef>
 #include <vector>
 
 #include "core/core.h"

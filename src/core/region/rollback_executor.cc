@@ -6,8 +6,13 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstddef>
+#include <format>
+#include <mutex>
 #include <print>
 #include <string>
+#include <string_view>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -16,9 +21,12 @@
 #include "core/core.h"
 #include "core/file_util.h"
 #include "core/mem/mapped_file.h"
+#include "core/region/dimension.h"
 #include "core/region/processor/chunk_processor.h"
 #include "core/region/processor/full_region_processor.h"
+#include "core/region/rollback_config.h"
 #include "core/region/rollback_task.h"
+#include "core/region/rollback_type.h"
 
 namespace core {
 

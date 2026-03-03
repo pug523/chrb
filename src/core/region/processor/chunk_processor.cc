@@ -4,16 +4,15 @@
 
 #include "core/region/processor/chunk_processor.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <ctime>
 #include <print>
-#include <string>
-#include <string_view>
-#include <utility>
 #include <vector>
 
 #include "core/check.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
-#include "core/file_util.h"
 #include "core/mem/mapped_file.h"
 #include "core/region/build_sector_map.h"
 #include "core/region/find_free_sector.h"

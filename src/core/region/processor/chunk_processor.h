@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <string_view>
-
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
 

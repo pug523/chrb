@@ -4,8 +4,7 @@
 
 #include "core/cli/log_prefix.h"
 
-#include <array>
-#include <atomic>
+#include <cstddef>
 #include <string_view>
 
 #include "core/cli/console.h"

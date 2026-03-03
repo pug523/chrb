@@ -7,15 +7,18 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstddef>
 #include <mutex>
 #include <new>
 #include <queue>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
 #include "core/core.h"
-#include "core/region/chunk_position.h"
+#include "core/region/chunk_range.h"
+#include "core/region/dimension.h"
 #include "core/region/region_position.h"
 #include "core/region/rollback_config.h"
 #include "core/region/rollback_task.h"

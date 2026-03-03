@@ -15,6 +15,8 @@
 #include <vector>
 
 #include "core/core.h"
+#include "core/region/chunk_position.h"
+#include "core/region/region_position.h"
 #include "core/region/rollback_config.h"
 #include "core/region/rollback_task.h"
 #include "core/region/rollback_type.h"
@@ -52,6 +54,10 @@ class RollbackExecutor {
   }
   inline u64 failed_chunk_count() const { return failed_chunk_count_; }
 
+  inline const std::vector<RegionPosition>& failed_regions() const {
+    return failed_regions_;
+  }
+
  private:
   void schedule(Dimension dimension, RollbackType type);
 
@@ -74,8 +80,12 @@ class RollbackExecutor {
 
   std::queue<RollbackTask> region_queue_;
   std::mutex mutex_;
+  std::mutex failed_regions_mutex_;
+  // std::mutex failed_chunks_mutex_;
   std::condition_variable cv_;
   std::vector<std::thread> workers_;
+  std::vector<RegionPosition> failed_regions_;
+  // std::vector<ChunkPosition> failed_chunks_;
   RollbackConfig config_;
   std::chrono::time_point<std::chrono::steady_clock> start_time_;
 

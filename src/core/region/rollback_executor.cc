@@ -6,16 +6,16 @@
 
 #include <algorithm>
 #include <chrono>
-#include <fstream>
 #include <print>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "core/check.h"
-#include "core/cli/colored_prefix.h"
+#include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/file_util.h"
+#include "core/mem/mapped_file.h"
 #include "core/region/processor/chunk_processor.h"
 #include "core/region/processor/full_region_processor.h"
 #include "core/region/rollback_task.h"
@@ -40,9 +40,7 @@ void RollbackExecutor::init(RollbackConfig&& config) {
 void RollbackExecutor::start() {
   dcheck(num_threads_ > 0);
 
-  ColoredPrefix cp;
-  cp.init_info();
-  std::println("starting rollback...");
+  std::println("{}starting rollback...", info_prefix());
 
   start_time_ = std::chrono::steady_clock::now();
 
@@ -63,7 +61,7 @@ void RollbackExecutor::start() {
       schedule(config_.dimension, RollbackType::Poi);
     }
   }
-  std::println("scheduled {} regions", region_queue_.size());
+  std::println("{}scheduled {} regions", info_prefix(), region_queue_.size());
   start_workers();
 }
 
@@ -89,12 +87,13 @@ void RollbackExecutor::flush() {
   const auto end_time = ch::steady_clock::now();
   const auto diff = end_time - start_time_;
   if (diff < ch::seconds(1)) {
-    std::println("rollback completed in: {}ms",
+    std::println("{}rollback completed in: {}ms", info_prefix(),
                  ch::duration_cast<ch::milliseconds>(diff).count());
   } else {
     const auto s = ch::duration_cast<ch::seconds>(diff);
     const auto ms = ch::duration_cast<ch::milliseconds>(diff - s);
-    std::println("rollback completed in: {}.{}s", s.count(), ms.count());
+    std::println("{}rollback completed in: {}.{}s", info_prefix(), s.count(),
+                 ms.count());
   }
 }
 
@@ -112,7 +111,8 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
       const i32 max_chunk_z = (rz << 5) + 31;
 
       if (config_.verbose) {
-        std::println("scheduling region ({:4}, {:4})", rx, rz);
+        std::println("{}scheduling region r({:4}, {:4})", debug_prefix(), rx,
+                     rz);
       }
 
       const bool fully_contained =
@@ -120,7 +120,7 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
           *config_.min_z <= min_chunk_z && *config_.max_z >= max_chunk_z;
 
       region_queue_.push(RollbackTask{
-          .region = {.region_x = rx, .region_z = rz},
+          .region = {.x = rx, .z = rz},
           .chunk_range = {.min_x = std::max(min_chunk_x, *config_.min_x),
                           .min_z = std::max(min_chunk_z, *config_.min_z),
                           .max_x = std::min(max_chunk_x, *config_.max_x),
@@ -139,13 +139,17 @@ void RollbackExecutor::start_workers() {
   dcheck(config_.num_threads <= static_cast<i32>(std::hardware_concurrency()));
   for (i32 i = 0; i < config_.num_threads; ++i) {
     workers_.emplace_back(&RollbackExecutor::worker_thread, this);
+    if (config_.verbose) {
+      std::println("{}started a worker thread (id: {})", debug_prefix(), i);
+    }
+  }
+  if (config_.verbose) {
+    std::println("{}started all {} worker threads", debug_prefix(),
+                 config_.num_threads);
   }
 }
 
 void RollbackExecutor::worker_thread() {
-  if (config_.verbose) {
-    std::println("started worker thread");
-  }
   while (true) {
     std::unique_lock<std::mutex> lock(mutex_);
     cv_.wait(lock, [this] { return stop_ || !region_queue_.empty(); });
@@ -163,8 +167,8 @@ void RollbackExecutor::worker_thread() {
 }
 
 void RollbackExecutor::run_task(const RollbackTask& task) {
-  const i32 rx = task.region.region_x;
-  const i32 rz = task.region.region_z;
+  const i32 rx = task.region.x;
+  const i32 rz = task.region.z;
 
   std::string src_dir(config_.src_world);
   src_dir.push_back('/');
@@ -177,10 +181,12 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
   {
     bool dir_exists = true;
     if (!is_dir(src_dir)) {
-      std::println(stderr, "directory not found: {}", src_dir);
+      std::println(stderr, "{}directory not found: {}", error_prefix(),
+                   src_dir);
       dir_exists = false;
     } else if (!is_dir(dest_dir)) {
-      std::println(stderr, "directory not found: {}", src_dir);
+      std::println(stderr, "{}directory not found: {}", error_prefix(),
+                   src_dir);
       dir_exists = false;
     }
     if (!dir_exists) {
@@ -199,9 +205,9 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
 
   if (!is_file(src_file) || !is_file(dest_file)) {
     if (config_.verbose) {
-      std::println("skipped missing region: {}", filename);
+      std::println("{}skipped missing region: {}", debug_prefix(), filename);
     }
-    failed_region_count_.fetch_add(1);
+    // this is not an error
     return;
   }
 
@@ -233,6 +239,9 @@ void RollbackExecutor::rollback_region(i32 rx,
   region_processor.init(rx, rz, src_path, dest_path, config_.verbose);
   if (!region_processor.process()) {
     failed_region_count_.fetch_add(1);
+    std::unique_lock<std::mutex> lock(failed_regions_mutex_);
+    failed_regions_.emplace_back(rx, rz);
+    lock.unlock();
   } else {
     successfull_region_count_.fetch_add(1);
   }
@@ -243,37 +252,48 @@ void RollbackExecutor::rollback_chunks(i32 rx,
                                        ChunkRange range,
                                        const std::string& src_file,
                                        const std::string& dest_file) {
-  std::fstream src(src_file, std::ios::binary | std::ios::in);
-  std::fstream dest(dest_file, std::ios::binary | std::ios::in | std::ios::out);
+  constexpr size_t kMcaHeaderSize = 8192;
+  MappedFile src;
+  src.open(src_file, kMcaHeaderSize);
+  MappedFile dest;
+  dest.open(dest_file, kMcaHeaderSize);
 
-  if (!src) {
-    std::println(stderr, "failed to open src file: {}", src_file);
-    failed_region_count_.fetch_add(1);
-    return;
-  } else if (!dest) {
-    std::println(stderr, "failed to open dest file: {}", dest_file);
-    failed_region_count_.fetch_add(1);
-    return;
+  {
+    bool failed_open = false;
+    if (!src.is_open()) {
+      std::println(stderr, "{}failed to open src file", error_prefix());
+      failed_open = true;
+    }
+    if (!dest.is_open()) {
+      std::println(stderr, "{}failed to open dest file", error_prefix());
+      failed_open = true;
+    }
+    if (failed_open) {
+      failed_region_count_.fetch_add(1);
+      return;
+    }
   }
 
   ChunkProcessor chunk_processor;
   chunk_processor.init(rx, rz, &src, &dest, config_.verbose);
 
-  i64 failed_local = 0;
+  // i64 failed_local = 0;
   for (i32 cx = range.min_x; cx <= range.max_x; ++cx) {
     for (i32 cz = range.min_z; cz <= range.max_z; ++cz) {
-      if (!chunk_processor.process(cx, cz)) {
-        ++failed_local;
-      }
+      chunk_processor.process(cx, cz);
+      // if (!chunk_processor.process(cx, cz)) {
+      //   ++failed_local;
+      // }
     }
   }
 
   const i64 chunks_tried =
       (range.max_x - range.min_x + 1) * (range.max_z - range.min_z + 1);
   dcheck(chunks_tried > 0);
-  successfull_chunk_count_.fetch_add(
-      static_cast<u64>(chunks_tried - failed_local));
-  failed_chunk_count_.fetch_add(static_cast<u64>(failed_local));
+  successfull_chunk_count_.fetch_add(static_cast<u64>(chunks_tried));
+  // successfull_chunk_count_.fetch_add(
+  //     static_cast<u64>(chunks_tried - failed_local));
+  // failed_chunk_count_.fetch_add(static_cast<u64>(failed_local));
 }
 
 }  // namespace core

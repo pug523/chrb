@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include <vector>
-
-#include "core/mem/mapped_file.h"
+#include "core/core.h"
 
 namespace core {
 
-std::vector<bool> build_sector_map(const MappedFile& file);
+struct RegionPosition {
+  i32 x;
+  i32 z;
+};
 
-}
+}  // namespace core

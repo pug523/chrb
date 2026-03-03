@@ -7,7 +7,7 @@
 #include "core/core.h"
 #include "core/region/chunk_range.h"
 #include "core/region/dimension.h"
-#include "core/region/region.h"
+#include "core/region/region_position.h"
 #include "core/region/rollback_type.h"
 
 namespace core {
@@ -18,7 +18,7 @@ enum class RollbackMode : u8 {
 };
 
 struct RollbackTask {
-  Region region;
+  RegionPosition region;
   ChunkRange chunk_range;
   Dimension dimension;
   RollbackType type;

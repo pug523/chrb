@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <fstream>
-
 #include "core/core.h"
+#include "core/mem/mapped_file.h"
 
 namespace core {
 
@@ -15,6 +14,6 @@ struct LocationEntry {
   u8 sectors = 0;
 };
 
-LocationEntry read_location(std::fstream& file, i32 index);
+LocationEntry read_location(const MappedFile& file, i32 index);
 
 }  // namespace core

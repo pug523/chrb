@@ -7,8 +7,8 @@
 #include <print>
 #include <string_view>
 
-#include "core/cli/colored_prefix.h"
 #include "core/cli/console.h"
+#include "core/cli/log_prefix.h"
 #include "core/cli/style_util.h"
 #include "core/region/dimension.h"
 #include "core/region/rollback_type.h"
@@ -28,16 +28,16 @@ bool safe_stoi(std::string_view str, i32* dest) {
   if (ec == std::errc()) {
     return true;
   }
-  ColoredPrefix e;
-  e.init_error();
   if (ec == std::errc::invalid_argument) {
-    std::println(stderr, "{}invalid format (expected number)", e.err());
+    std::println(stderr, "{}invalid format: {} (expected number)",
+                 error_prefix(), str);
     return false;
   } else if (ec == std::errc::result_out_of_range) {
-    std::println(stderr, "{}out of range", e.err());
+    std::println(stderr, "{}out of range: {}", error_prefix(), str);
     return false;
   } else {
-    std::println(stderr, "{}unknown error (expected number)", e.err());
+    std::println(stderr, "{}unknown error: {} (expected number)",
+                 error_prefix(), str);
     return false;
   }
 }

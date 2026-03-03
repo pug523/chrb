@@ -97,9 +97,9 @@ jobs:
             -a "${{ matrix.arch }}" \
             --stdlib="${{ matrix.stdlib }}"
 
-      - name: build alcy
+      - name: build chrb
         shell: bash
-        run: xmake build alcy
+        run: xmake build chrb
 
       - name: build tests and run
         shell: bash

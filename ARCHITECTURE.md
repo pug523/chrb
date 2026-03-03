@@ -3,7 +3,7 @@
 ## ChunkProcessor Mechanism
 
 The `ChunkProcessor` synchronizes specific chunks between source and destination MCA files by directly manipulating the Region File Format.  
-See [src/core/mca/chunk_processor.cc](src/core/mca/chunk_processor.cc).
+See [src/core/region/chunk_processor.cc](src/core/region/chunk_processor.cc).
 
 ### Processing Logic
 
@@ -38,9 +38,9 @@ For each chunk coordinate $(cx, cz)$, the processor compares the Location Table 
 
 ### Key Components
 
-| Component          | Description                                                                                                   |
-| :----------------- | :------------------------------------------------------------------------------------------------------------ |
-| Location Table | A 4 KiB header where each 4-byte entry contains a 3-byte offset and a 1-byte sector count.                |
+| Component      | Description                                                                                                   |
+| :------------- | :------------------------------------------------------------------------------------------------------------ |
+| Location Table | A 4 KiB header where each 4-byte entry contains a 3-byte offset and a 1-byte sector count.                    |
 | Sector Map     | A bitset-like structure used to track which 4KiB sectors in the destination file are currently occupied.      |
 | Relocation     | A mechanism to prevent file corruption when a chunk grows, ensuring it doesn't overwrite adjacent chunk data. |
 
@@ -49,19 +49,23 @@ For each chunk coordinate $(cx, cz)$, the processor compares the Location Table 
 - Sector Size: All operations are aligned to `kSectorSize` (4 KiB).
 - Chunk Indexing: Calculated as ($(cx \ \& \ 31) + ((cz \ \& \ 31) \ll 5)$).
 - Timestamp: The second 4 KiB page of the MCA file is updated with the current Unix timestamp whenever a chunk is modified.
+- I/O Backend: All file access uses fast `MappedFile`.
 
 ---
 
 ## FullRegionProcessor Mechanism
 
 The `FullRegionProcessor` handles high-efficiency rollbacks when an entire region (32x32 chunks) needs to be restored. Instead of parsing internal MCA structures, it operates at the file-system level.  
-See [src/core/mca/full_region_processor.cc](src/core/mca/full_region_processor.cc).
+See [src/core/region/full_region_processor.cc](src/core/region/full_region_processor.cc).
 
 ### Processing Logic
 - Direct File Replacement: If a region is fully contained within the rollback boundaries, the processor replaces the destination `.mca` file with the source file.
 - Atomic Write:
-    1. Copies the source MCA to a `.tmp` file in the destination directory.
-    2. Renames the `.tmp` file to the final destination filename.
+    1. Opens the source MCA via `MappedFile` (mmap).
+    2. Creates a `.tmp` file in the destination directory, sized to match the source.
+    3. Maps the `.tmp` file and copies data via `memcpy` with `madvise(MADV_SEQUENTIAL)` for prefetch optimization.
+    4. Calls `msync(MS_SYNC)` to flush pages to disk before rename.
+    5. Renames the `.tmp` file to the final destination filename (atomic on same filesystem).
        - This ensures that a crash during the copy process doesn't leave the destination world with a corrupted or half-written region file.
 
 ---
@@ -69,15 +73,15 @@ See [src/core/mca/full_region_processor.cc](src/core/mca/full_region_processor.c
 ## RollbackExecutor Mechanism
 
 The `RollbackExecutor` is the multi-threaded orchestration engine. It determines the most efficient processing strategy (Full vs. Partial) based on the requested coordinates and manages the worker lifecycle.  
-See [src/core/mca/rollback_executor.cc](src/core/mca/rollback_executor.cc).
+See [src/core/region/rollback_executor.cc](src/core/region/rollback_executor.cc).
 
 ### 1. Task Scheduling & Optimization
 The executor divides the world into "tasks" based on region boundaries ($512 \times 512$ blocks). It automatically selects the optimal `RollbackMode`:
 
-| Mode | Trigger Condition | Execution Strategy |
-| :--- | :--- | :--- |
-| FullCopy | The requested range completely covers the $32 \times 32$ chunk area of a region. | Uses `FullRegionProcessor` for instant file-level restoration. |
-| Partial | The requested range only partially overlaps a region. | Uses `ChunkProcessor` to surgically update specific chunks within the file. |
+| Mode     | Trigger Condition                                                                | Execution Strategy                                                          |
+| :------- | :------------------------------------------------------------------------------- | :-------------------------------------------------------------------------- |
+| FullCopy | The requested range completely covers the $32 \times 32$ chunk area of a region. | Uses `FullRegionProcessor` for instant file-level restoration.              |
+| Partial  | The requested range only partially overlaps a region.                            | Uses `ChunkProcessor` to surgically update specific chunks within the file. |
 
 ### 2. Multi-threaded Architecture
 - Worker Pool: Spawns a configurable number of worker threads (up to `std::hardware_concurrency`).

@@ -1,0 +1,85 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            plat: linux
+            arch: x86_64
+            stdlib: libc++
+            suffix: linux-x86_64
+            archive: tar.gz
+          - os: windows-2025-vs2026
+            plat: windows
+            arch: x64
+            stdlib: msvc
+            suffix: windows-x64
+            archive: zip
+          - os: macos-26
+            plat: macosx
+            arch: arm64
+            stdlib: libc++
+            suffix: macos-arm64
+            archive: tar.gz
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    name: release build (${{ matrix.suffix }})
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: setup xmake
+        uses: xmake-io/github-action-setup-xmake@cc0f56c35b75d0975ed5d9e29005fae707721cd5
+
+      - name: install llvm tools
+        uses: KyleMayes/install-llvm-action@ebc0426251bc40c7cd31162802432c68818ab8f0
+        with:
+          # https://github.com/KyleMayes/install-llvm-action/blob/master/assets.json
+          version: "21.1.8"
+
+      - name: configure
+        shell: bash
+        run: |
+          xmake config -c -y \
+            -m release \
+            --toolchain=llvm \
+            --unitybuild=y \
+            -p "${{ matrix.plat }}" \
+            -a "${{ matrix.arch }}" \
+            -stdlib="${{ matrix.stdlib }}"
+
+      - name: build chrb
+        shell: bash
+        run: xmake build chrb
+
+      - name: package artifact
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp LICENSE README.md dist/ 2>/dev/null || true
+
+          if [[ "${{ matrix.plat }}" == "windows" ]]; then
+            cp out/bin/chrb.exe dist/
+            cd dist && 7z a ../chrb-${{ matrix.suffix }}.zip *
+          else
+            cp out/bin/chrb dist/
+            cd dist && tar -czvf ../chrb-${{ matrix.suffix }}.tar.gz *
+          fi
+
+      - name: upload artifact to release
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
+        with:
+          files: chrb-${{ matrix.suffix }}.${{ matrix.archive }}
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

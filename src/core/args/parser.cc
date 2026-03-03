@@ -9,8 +9,8 @@
 #include <string_view>
 #include <utility>
 
-#include "core/cli/colored_prefix.h"
 #include "core/cli/console.h"
+#include "core/cli/log_prefix.h"
 #include "core/cli/style_util.h"
 
 namespace core {
@@ -60,9 +60,7 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
     const ArgDef* def = find(token);
 
     if (!def) {
-      ColoredPrefix cp;
-      cp.init_error();
-      std::println(stderr, "{}unknown argument: '{}'", cp.err(), token);
+      std::println(stderr, "{}unknown argument: '{}'", error_prefix(), token);
       result = ParseResult::UnknownArgument;
       continue;
     } else if (def->takes_value) {
@@ -72,9 +70,7 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
       } else if (i + 1 < argc) {
         value = argv[++i];
       } else {
-        ColoredPrefix cp;
-        cp.init_error();
-        std::println(stderr, "{}argument '{}' requires a value", cp.err(),
+        std::println(stderr, "{}argument '{}' requires a value", error_prefix(),
                      token);
         continue;
       }
@@ -82,10 +78,8 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
       matched_[static_cast<size_t>(def - defs_.data())] = true;
     } else if (!def->takes_value) {
       if (eq_pos != std::string_view::npos) {
-        ColoredPrefix cp;
-        cp.init_error();
-        std::println(stderr, "{}argument '{}' does not take a value", cp.err(),
-                     token);
+        std::println(stderr, "{}argument '{}' does not take a value",
+                     error_prefix(), token);
       } else {
         def->on_match({});
         // --help short-circuits
@@ -112,10 +106,8 @@ bool ArgParser::validate_required() const {
   bool ok = true;
   for (size_t i = 0; i < defs_.size(); ++i) {
     if (defs_[i].required && !matched_[i]) {
-      ColoredPrefix cp;
-      cp.init_error();
-      std::println(stderr, "{}required argument '{}' not provided", cp.err(),
-                   defs_[i].long_name);
+      std::println(stderr, "{}required argument '{}' not provided",
+                   error_prefix(), defs_[i].long_name);
       ok = false;
     }
   }

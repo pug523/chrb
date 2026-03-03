@@ -8,9 +8,9 @@
 
 namespace core {
 
-struct Region {
-  i32 region_x;
-  i32 region_z;
+struct ChunkPosition {
+  i32 x;
+  i32 z;
 };
 
 }  // namespace core

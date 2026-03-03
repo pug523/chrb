@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <cstring>
 #include <string>
 #include <string_view>
 
+#include "core/check.h"
 #include "core/core.h"
 
 namespace core {
@@ -26,6 +28,16 @@ class MappedFile {
   void close();
 
   bool resize(size_t new_size);
+
+  inline void read(size_t offset, void* dst, size_t len) const {
+    dcheck(offset + len <= size_);
+    std::memcpy(dst, data_ + offset, len);
+  }
+
+  inline void write(size_t offset, const void* src, size_t len) {
+    dcheck(offset + len <= size_);
+    std::memcpy(data_ + offset, src, len);
+  }
 
   inline u8* data() { return data_; }
   inline size_t size() const { return size_; }

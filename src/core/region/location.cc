@@ -4,14 +4,11 @@
 
 #include "core/region/location.h"
 
-#include <fstream>
-
 namespace core {
 
-LocationEntry read_location(std::fstream& file, i32 index) {
-  file.seekg(index * 4);
+LocationEntry read_location(const MappedFile& file, i32 index) {
   u8 buf[4];
-  file.read(reinterpret_cast<char*>(buf), 4);
+  file.read(static_cast<size_t>(index) * 4, buf, 4);
 
   return LocationEntry{
       .offset = static_cast<u32>(buf[0]) << 16 | static_cast<u32>(buf[1]) << 8 |

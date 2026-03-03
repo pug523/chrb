@@ -8,9 +8,11 @@
 
 #include <algorithm>
 #include <print>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "core/cli/log_prefix.h"
 #include "core/cli/parse_args.h"
 #include "core/file_util.h"
 #include "core/region/dimension.h"
@@ -37,10 +39,12 @@ i32 rollback(i32 argc, char** argv) {
   {
     bool dir_exists = true;
     if (!is_dir(config.src_world)) {
-      std::println(stderr, "directory not found: {}", config.src_world);
+      std::println(stderr, "{}directory not found: {}", error_prefix(),
+                   config.src_world);
       dir_exists = false;
     } else if (!is_dir(config.dest_world)) {
-      std::println(stderr, "directory not found: {}", config.dest_world);
+      std::println(stderr, "{}directory not found: {}", error_prefix(),
+                   config.dest_world);
       dir_exists = false;
     }
     if (!dir_exists) {
@@ -76,24 +80,33 @@ verbose = {}
   executor.flush();
 
   const u64 successfull_region_count = executor.successfull_region_count();
-  const u64 failed_region_count = executor.failed_region_count();
   const u64 successfull_chunk_count = executor.successfull_chunk_count();
+  const u64 failed_region_count = executor.failed_region_count();
   const u64 failed_chunk_count = executor.failed_chunk_count();
 
   i32 result = 0;
   if (successfull_region_count > 0) {
-    std::println("{:5} full regions processed successfully",
+    std::println("{}{:5} full regions processed successfully", info_prefix(),
                  successfull_region_count);
   }
+  if (successfull_chunk_count > 0) {
+    std::println("{}{:5} chunks processed successfully", info_prefix(),
+                 successfull_chunk_count);
+  }
   if (failed_region_count > 0) {
-    std::println("{:5} full regions failed", failed_region_count);
+    std::string failed_regions_string = "";
+    for (const auto& r : executor.failed_regions()) {
+      failed_regions_string.append(std::format("r({:4}, {:4})\n", r.x, r.z));
+    }
+    std::print(R"({}{:5} full regions failed
+[failed regions]
+{}
+)",
+               error_prefix(), failed_region_count, failed_regions_string);
     ++result;
   }
-  if (successfull_chunk_count > 0) {
-    std::println("{:5} chunks processed successfully", successfull_chunk_count);
-  }
   if (failed_chunk_count > 0) {
-    std::println("{:5} chunks failed", failed_chunk_count);
+    std::println("{}{:5} chunks failed", error_prefix(), failed_chunk_count);
     ++result;
   }
 

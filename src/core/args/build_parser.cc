@@ -4,6 +4,7 @@
 
 #include "core/args/build_parser.h"
 
+#include <charconv>
 #include <print>
 #include <string_view>
 

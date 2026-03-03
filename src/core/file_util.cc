@@ -39,8 +39,6 @@
 
 #include <string_view>
 
-#include "core/core.h"
-
 namespace core {
 
 namespace {
@@ -130,3 +128,4 @@ bool rename_file(const std::string_view from, const std::string_view to) {
 }
 
 }  // namespace core
+

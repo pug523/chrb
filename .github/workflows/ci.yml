@@ -89,6 +89,7 @@ jobs:
             echo "LLVM_LIB_DIR=$LLVM_PATH/lib" >> $GITHUB_ENV
             echo "DYLD_LIBRARY_PATH=$LLVM_LIB_DIR" >> $GITHUB_ENV
             echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+            echo "MACOSX_DEPLOYMENT_TARGET=14.0" >> $GITHUB_ENV
           fi
 
           xmake config -c -y -v \

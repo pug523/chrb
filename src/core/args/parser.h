@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -62,8 +63,8 @@ class ArgParser {
   std::string_view version_;
   std::string_view tagline_;
   std::vector<ArgDef> defs_;
-  std::unordered_map<std::string_view, size_t> long_name_to_defs_index_;
-  std::unordered_map<std::string_view, size_t> short_name_to_defs_index_;
+  std::unordered_map<std::string, size_t> long_name_to_defs_index_;
+  std::unordered_map<std::string, size_t> short_name_to_defs_index_;
   std::vector<bool> matched_;
   std::vector<std::string_view> positionals_;
 

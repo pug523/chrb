@@ -26,18 +26,18 @@ ArgParser::ArgParser(std::string_view program_name,
 
 void ArgParser::add(ArgDef def) {
   dcheck(!(def.required && !def.takes_value));
-  long_name_to_defs_index_[def.long_name] = defs_.size();
-  short_name_to_defs_index_[def.short_name] = defs_.size();
+  long_name_to_defs_index_[std::string(def.long_name)] = defs_.size();
+  short_name_to_defs_index_[std::string(def.short_name)] = defs_.size();
   defs_.push_back(std::move(def));
   matched_.push_back(false);
 }
 
 const ArgDef* ArgParser::find(std::string_view token) const {
-  const auto& long_itr = long_name_to_defs_index_.find(token);
+  const auto& long_itr = long_name_to_defs_index_.find(std::string(token));
   if (long_itr != long_name_to_defs_index_.end()) {
     return &defs_[long_itr->second];
   }
-  const auto& short_itr = short_name_to_defs_index_.find(token);
+  const auto& short_itr = short_name_to_defs_index_.find(std::string(token));
   if (short_itr != short_name_to_defs_index_.end()) {
     return &defs_[short_itr->second];
   }

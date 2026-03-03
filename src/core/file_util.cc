@@ -4,20 +4,35 @@
 
 #include "core/file_util.h"
 
+#ifdef IS_PLAT_WINDOWS
+#ifdef _CRT_SECURE_NO_WARNINGS
+#undef _CRT_SECURE_NO_WARNINGS
+#endif  // _CRT_SECURE_NO_WARNINGS
+#ifdef _CRT_NONSTDC_NO_WARNINGS
+#undef _CRT_NONSTDC_NO_WARNINGS
+#endif  // _CRT_NONSTDC_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NONSTDC_NO_WARNINGS
+#endif
+
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
 #include <cstdio>
 
+#include "core/core.h"
+
 #ifdef IS_PLAT_WINDOWS
 #include <io.h>
 #include <windows.h>
 #define stat _stat
-#define open _open
 #define close _close
 #define read _read
 #define write _write
+#define S_IRUSR _S_IREAD
+#define S_IWUSR _S_IWRITE
+#define ssize_t SSIZE_T
 #else
 #include <unistd.h>
 #endif
@@ -49,7 +64,16 @@ bool is_file(const std::string_view path) {
 }
 
 bool create_file(const std::string_view path) {
+#if IS_PLAT_WINDOWS
+  i32 fd;
+  errno_t err =
+      _sopen_s(&fd, path.data(), O_CREAT | O_WRONLY | O_TRUNC, _SH_DENYNO, 0);
+  if (err != 0) {
+    return false;
+  }
+#else
   i32 fd = open(path.data(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+#endif
   if (fd == -1) {
     return false;
   }
@@ -58,12 +82,29 @@ bool create_file(const std::string_view path) {
 }
 
 bool copy_file(const std::string_view from, const std::string_view to) {
+#if IS_PLAT_WINDOWS
+  i32 source;
+  errno_t err = _sopen_s(&source, from.data(), O_RDONLY, _SH_DENYNO, 0);
+  if (err != 0) {
+    return false;
+  }
+#else
   i32 source = open(from.data(), O_RDONLY);
+#endif
   if (source == -1) {
     return false;
   }
 
+#if IS_PLAT_WINDOWS
+  i32 dest;
+  errno_t err2 = _sopen_s(&dest, to.data(), O_CREAT | O_WRONLY | O_TRUNC,
+                          _SH_DENYNO, S_IRUSR | S_IWUSR);
+  if (err2 != 0) {
+    return false;
+  }
+#else
   i32 dest = open(to.data(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+#endif
   if (dest == -1) {
     close(source);
     return false;
@@ -72,7 +113,7 @@ bool copy_file(const std::string_view from, const std::string_view to) {
   char buffer[4096];
   ssize_t bytes;
   while ((bytes = read(source, buffer, sizeof(buffer))) > 0) {
-    if (write(dest, buffer, static_cast<size_t>(bytes)) != bytes) {
+    if (write(dest, buffer, static_cast<u32>(bytes)) != bytes) {
       close(source);
       close(dest);
       return false;

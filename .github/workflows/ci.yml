@@ -83,8 +83,10 @@ jobs:
             # echo "LD_LIBRARY_PATH=$LLVM_PATH/lib:$LLVM_PATH/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
             sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
             sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
-          # elif [[ "${{ matrix.plat }}" == "macosx" ]]; then
-          #   echo "DYLD_LIBRARY_PATH=$LLVM_PATH/lib" >> $GITHUB_ENV
+          elif [[ "${{ matrix.plat }}" == "macosx" ]]; then
+            sudo xcode-select --switch /Applications/Xcode.app
+            xcode-select --install || true
+            echo "DYLD_LIBRARY_PATH=$LLVM_PATH/lib" >> $GITHUB_ENV
           fi
 
           xmake config -c -y -v \

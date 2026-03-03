@@ -55,7 +55,7 @@ jobs:
             --unitybuild=y \
             -p "${{ matrix.plat }}" \
             -a "${{ matrix.arch }}" \
-            -stdlib="${{ matrix.stdlib }}"
+            --stdlib="${{ matrix.stdlib }}"
 
       - name: build chrb
         shell: bash

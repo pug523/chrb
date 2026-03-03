@@ -84,12 +84,11 @@ jobs:
             sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
             sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
           elif [[ "${{ matrix.plat }}" == "macosx" ]]; then
-            sudo xcode-select --switch /Applications/Xcode.app
             xcode-select --install || true
+            echo "MACOSX_DEPLOYMENT_TARGET=26.0" >> $GITHUB_ENV
             echo "LLVM_LIB_DIR=$LLVM_PATH/lib" >> $GITHUB_ENV
             echo "DYLD_LIBRARY_PATH=$LLVM_LIB_DIR" >> $GITHUB_ENV
             echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
-            echo "MACOSX_DEPLOYMENT_TARGET=14.0" >> $GITHUB_ENV
           fi
 
           xmake config -c -y -v \

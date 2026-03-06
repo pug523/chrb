@@ -49,7 +49,8 @@ class MappedFile {
   std::string path_;
 
 #ifdef IS_PLAT_WINDOWS
-  void* file_handle_ = reinterpret_cast<void*>(-1);  // INVALID_HANDLE_VALUE
+  // INVALID_HANDLE_VALUE
+  void* file_handle_ = reinterpret_cast<void*>(-1);  // NOLINT
   void* mapping_handle_ = nullptr;
 #else
   i32 fd_ = -1;

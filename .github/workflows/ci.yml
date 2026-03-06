@@ -85,9 +85,12 @@ jobs:
             sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
           elif [[ "${{ matrix.plat }}" == "macosx" ]]; then
             xcode-select --install || true
-            echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
-            echo "LLVM_LIB_DIR=$LLVM_PATH/lib" >> $GITHUB_ENV
-            echo "DYLD_LIBRARY_PATH=$LLVM_LIB_DIR" >> $GITHUB_ENV
+            # echo "LLVM_LIB_DIR=$LLVM_PATH/lib" >> $GITHUB_ENV
+            # echo "DYLD_LIBRARY_PATH=$LLVM_LIB_DIR" >> $GITHUB_ENV
+            SDK=$(xcrun --show-sdk-path)
+            echo "SDKROOT=$SDK" >> $GITHUB_ENV
+            echo "LDFLAGS=-L$SDK/usr/lib" >> $GITHUB_ENV
+            echo "CXXFLAGS=-isysroot $SDK" >> $GITHUB_ENV
           fi
 
           xmake config -c -y -v \
@@ -122,4 +125,3 @@ jobs:
           xmake check clang
           xmake analyze
           xmake lint
-

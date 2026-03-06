@@ -68,10 +68,10 @@ jobs:
           cp LICENSE README.md dist/ 2>/dev/null || true
 
           if [[ "${{ matrix.plat }}" == "windows" ]]; then
-            cp out/bin/chrb.exe dist/
+            cp out/*/chrb.exe dist/
             cd dist && 7z a ../chrb-${{ matrix.suffix }}.zip *
           else
-            cp out/bin/chrb dist/
+            cp out/*/chrb dist/
             cd dist && tar -czvf ../chrb-${{ matrix.suffix }}.tar.gz *
           fi
 

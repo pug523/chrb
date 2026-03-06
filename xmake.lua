@@ -165,7 +165,8 @@ target("chrb.root_config")
   add_cxxflags("-fstack-protector-strong", {public = true})
   add_defines("__STDC_CONSTANT_MACROS", "__STDC_FORMAT_MACROS", {public = true})
   add_defines("PROJECT_VERSION=\"" .. project_version .. "\"",  {public = true})
-  add_includedirs("src", "third_party", {public = true})
+  -- add_includedirs("src", "third_party", {public = true})
+  add_includedirs("src", {public = true})
 
   if is_plat("linux") then
     add_cxxflags("-fcf-protection=full", "-fPIE", {public = true})

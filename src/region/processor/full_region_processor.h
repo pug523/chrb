@@ -4,13 +4,16 @@
 
 #pragma once
 
+#include <string_view>
+
+#include "core/core.h"
+
+#ifdef IS_PLAT_LINUX
 #include <cstddef>
 #include <functional>
 #include <string>
-#include <string_view>
 #include <vector>
-
-#include "core/core.h"
+#endif
 
 namespace region {
 

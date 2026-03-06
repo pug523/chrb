@@ -8,13 +8,14 @@
 
 #include <cstddef>
 #include <cstring>
-#include <functional>
 #include <print>
 #include <string>
 #include <string_view>
-#include <vector>
 
+#include "core/cli/log_prefix.h"
 #include "core/core.h"
+#include "core/file_util.h"
+#include "core/mem/mapped_file.h"
 
 #ifdef IS_PLAT_WINDOWS
 #include <windows.h>
@@ -24,10 +25,12 @@
 #include <unistd.h>
 #endif
 
+#ifdef IS_PLAT_LINUX
+#include <functional>
+#include <vector>
+
 #include "core/check.h"
-#include "core/cli/log_prefix.h"
-#include "core/file_util.h"
-#include "core/mem/mapped_file.h"
+#endif
 
 namespace region {
 
@@ -88,7 +91,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
                     CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (fh == INVALID_HANDLE_VALUE) [[unlikely]] {
       std::println(stderr, "{}failed to create tmp: {} (in {},{})",
-                   core::error_prefix(), tmp, rx_, rz_);
+                   core::error_prefix(), tmp, rx, rz);
       return false;
     }
     CloseHandle(fh);

@@ -8,11 +8,9 @@
 
 #include <fcntl.h>
 
-#include <algorithm>
 #include <cstdio>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include "core/check.h"
@@ -30,11 +28,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <cstring>
+#include <utility>
 #elif defined(IS_PLAT_MACOS)
 // NOLINTNEXTLINE
 #include <dirent.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #elif defined(IS_PLAT_WINDOWS)
 #include <io.h>
@@ -121,9 +122,9 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
 
 #elif defined(IS_PLAT_WINDOWS)
   // narrow -> wide conversion via WinAPI to handle non-ASCII paths correctly
-  const int wlen =
+  const i32 wlen =
       MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
-  std::wstring wpath(wlen, L'\0');
+  std::wstring wpath(static_cast<size_t>(wlen), L'\0');
   MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, wpath.data(), wlen);
   // remove null terminator added by MultiByteToWideChar, then append wildcard
   if (!wpath.empty() && wpath.back() == L'\0') {
@@ -135,9 +136,9 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
   wpath.append(L"*");
 
   WIN32_FIND_DATAW find_data;
-  HANDLE hFind =
-      FindFirstFileExW(wpath.c_str(), FindExInfoBasic, &find_data,
-                       FindExSearchNameMatch, NULL, FIND_FIRST_EX_LARGE_FETCH);
+  HANDLE hFind = FindFirstFileExW(wpath.c_str(), FindExInfoBasic, &find_data,
+                                  FindExSearchNameMatch, nullptr,
+                                  FIND_FIRST_EX_LARGE_FETCH);
   if (hFind == INVALID_HANDLE_VALUE) {
     return 0;
   }
@@ -150,9 +151,9 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
     }
 
     // wide -> narrow for sub_path construction
-    const int nlen = WideCharToMultiByte(CP_UTF8, 0, wname, -1, nullptr, 0,
+    const i32 nlen = WideCharToMultiByte(CP_UTF8, 0, wname, -1, nullptr, 0,
                                          nullptr, nullptr);
-    std::string name_narrow(nlen, '\0');
+    std::string name_narrow(static_cast<size_t>(nlen), '\0');
     WideCharToMultiByte(CP_UTF8, 0, wname, -1, name_narrow.data(), nlen,
                         nullptr, nullptr);
     if (!name_narrow.empty() && name_narrow.back() == '\0') {

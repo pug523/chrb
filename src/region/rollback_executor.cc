@@ -2,7 +2,7 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "core/region/rollback_executor.h"
+#include "region/rollback_executor.h"
 
 #include <algorithm>
 #include <chrono>
@@ -21,12 +21,12 @@
 #include "core/core.h"
 #include "core/file_util.h"
 #include "core/mem/mapped_file.h"
-#include "core/region/dimension.h"
-#include "core/region/processor/chunk_processor.h"
-#include "core/region/processor/full_region_processor.h"
-#include "core/region/rollback_config.h"
-#include "core/region/rollback_task.h"
-#include "core/region/rollback_type.h"
+#include "region/dimension.h"
+#include "region/processor/chunk_processor.h"
+#include "region/processor/full_region_processor.h"
+#include "region/rollback_config.h"
+#include "region/rollback_task.h"
+#include "region/rollback_type.h"
 
 namespace core {
 

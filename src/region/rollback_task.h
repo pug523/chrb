@@ -5,10 +5,10 @@
 #pragma once
 
 #include "core/core.h"
-#include "core/region/chunk_range.h"
-#include "core/region/dimension.h"
-#include "core/region/region_position.h"
-#include "core/region/rollback_type.h"
+#include "region/chunk_range.h"
+#include "region/dimension.h"
+#include "region/region_position.h"
+#include "region/rollback_type.h"
 
 namespace core {
 

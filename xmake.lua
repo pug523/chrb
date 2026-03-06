@@ -28,6 +28,7 @@ set_encodings("utf-8") -- target
 
 local chrb_modules = {
   "chrb.core",
+  "chrb.region",
 }
 
 local is_libcxx = has_config("stdlib") and get_config("stdlib") == "libc++" and is_config("cxx", "clang", "clang++") and is_plat("linux", "macosx")
@@ -226,6 +227,13 @@ target("chrb.core")
   add_deps("chrb.root_config")
   set_kind("object")
   add_files("src/core/**.cc")
+  set_default(false)
+target_end()
+
+target("chrb.region")
+  add_deps("chrb.root_config")
+  set_kind("object")
+  add_files("src/region/**.cc")
   set_default(false)
 target_end()
 

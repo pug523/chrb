@@ -3,7 +3,7 @@
 ## ChunkProcessor Mechanism
 
 The `ChunkProcessor` synchronizes specific chunks between source and destination MCA files by directly manipulating the Region File Format.  
-See [src/core/region/chunk_processor.cc](src/core/region/chunk_processor.cc).
+See [src/region/chunk_processor.cc](src/region/chunk_processor.cc).
 
 ### Processing Logic
 
@@ -56,7 +56,7 @@ For each chunk coordinate $(cx, cz)$, the processor compares the Location Table 
 ## FullRegionProcessor Mechanism
 
 The `FullRegionProcessor` handles high-efficiency rollbacks when an entire region (32x32 chunks) needs to be restored. Instead of parsing internal MCA structures, it operates at the file-system level.  
-See [src/core/region/full_region_processor.cc](src/core/region/full_region_processor.cc).
+See [src/region/full_region_processor.cc](src/region/full_region_processor.cc).
 
 ### Processing Logic
 - Direct File Replacement: If a region is fully contained within the rollback boundaries, the processor replaces the destination `.mca` file with the source file.
@@ -73,7 +73,7 @@ See [src/core/region/full_region_processor.cc](src/core/region/full_region_proce
 ## RollbackExecutor Mechanism
 
 The `RollbackExecutor` is the multi-threaded orchestration engine. It determines the most efficient processing strategy (Full vs. Partial) based on the requested coordinates and manages the worker lifecycle.  
-See [src/core/region/rollback_executor.cc](src/core/region/rollback_executor.cc).
+See [src/region/rollback_executor.cc](src/region/rollback_executor.cc).
 
 ### 1. Task Scheduling & Optimization
 The executor divides the world into "tasks" based on region boundaries ($512 \times 512$ blocks). It automatically selects the optimal `RollbackMode`:

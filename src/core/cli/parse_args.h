@@ -5,7 +5,7 @@
 #pragma once
 
 #include "core/core.h"
-#include "core/region/rollback_config.h"
+#include "region/rollback_config.h"
 
 namespace core {
 

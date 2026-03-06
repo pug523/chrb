@@ -13,8 +13,8 @@
 #include "core/cli/parse_args.h"
 #include "core/core.h"
 #include "core/file_util.h"
-#include "core/region/rollback_config.h"
-#include "core/region/rollback_executor.h"
+#include "region/rollback_config.h"
+#include "region/rollback_executor.h"
 
 namespace core {
 

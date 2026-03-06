@@ -2,7 +2,7 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "core/region/processor/full_region_processor.h"
+#include "region/processor/full_region_processor.h"
 
 #include <sys/types.h>
 

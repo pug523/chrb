@@ -11,9 +11,9 @@
 #include "core/args/parser.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
-#include "core/region/dimension.h"
-#include "core/region/rollback_config.h"
-#include "core/region/rollback_type.h"
+#include "region/dimension.h"
+#include "region/rollback_config.h"
+#include "region/rollback_type.h"
 
 namespace core {
 

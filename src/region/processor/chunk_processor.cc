@@ -2,7 +2,7 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "core/region/processor/chunk_processor.h"
+#include "region/processor/chunk_processor.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -14,9 +14,9 @@
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
-#include "core/region/build_sector_map.h"
-#include "core/region/find_free_sector.h"
-#include "core/region/location.h"
+#include "region/build_sector_map.h"
+#include "region/find_free_sector.h"
+#include "region/location.h"
 
 namespace core {
 

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "core/args/parser.h"
-#include "core/region/rollback_config.h"
+#include "region/rollback_config.h"
 
 namespace core {
 

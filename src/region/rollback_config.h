@@ -9,8 +9,8 @@
 #include <thread>
 
 #include "core/core.h"
-#include "core/region/dimension.h"
-#include "core/region/rollback_type.h"
+#include "region/dimension.h"
+#include "region/rollback_type.h"
 
 namespace core {
 

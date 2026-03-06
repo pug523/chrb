@@ -27,8 +27,11 @@ i32 rollback(i32 argc, char** argv) {
     return static_cast<i32>(arg_result);
   }
 
-  if (config.src_world.back() != '/') {
+  if (config.src_world.back() != '/' && config.src_world.back() != '\\') {
     config.src_world.push_back('/');
+  }
+  if (config.dest_world.back() != '/' && config.src_world.back() != '\\') {
+    config.dest_world.push_back('/');
   }
 
   {

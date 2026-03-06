@@ -97,6 +97,6 @@ jobs:
         with:
           files: chrb-${{ matrix.suffix }}.${{ matrix.archive }}
           draft: true
-          generate_release_notes: true
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

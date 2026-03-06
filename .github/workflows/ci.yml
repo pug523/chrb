@@ -7,7 +7,7 @@ on:
       - src/**
       - tests/**
       - third_party/**
-      - .github/workflows/**
+      - .github/workflows/ci.yml
       - xmake.lua
       - CPPLINT.cfg
       - uv.lock

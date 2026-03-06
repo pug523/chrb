@@ -207,7 +207,7 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
           file_path.push_back('/');
         }
         file_path.append(name);
-        out->push_back(std::move(file_path));
+        out->push_back(std::move(file_path));  // NOLINT
       }
     }
   }
@@ -856,7 +856,7 @@ std::vector<u64> async_copy_files(const std::vector<std::string>& srcs,
         // write completes to keep ordering simple)
         if (s.rd_off < s.total && !s.rd_inflight) {
           const u32 to_read = static_cast<u32>(
-              std::min<off_t>(CopySlot::kChunk, s.total - s.rd_off));
+              std::min<off_t>(CopySlot::kChunk, s.total - s.rd_off));  // NOLINT
           if (ring.push_rw(IORING_OP_READ, s.src_fd, s.buf, to_read,
                            static_cast<u64>(s.rd_off), make_tag(si, false))) {
             s.rd_inflight = true;

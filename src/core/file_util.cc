@@ -62,7 +62,7 @@ bool is_file(const std::string_view path) {
 }
 
 bool create_file(const std::string_view path) {
-#if IS_PLAT_WINDOWS
+#ifdef IS_PLAT_WINDOWS
   i32 fd;
   errno_t err =
       _sopen_s(&fd, path.data(), O_CREAT | O_WRONLY | O_TRUNC, _SH_DENYNO, 0);
@@ -80,7 +80,7 @@ bool create_file(const std::string_view path) {
 }
 
 bool copy_file(const std::string_view from, const std::string_view to) {
-#if IS_PLAT_WINDOWS
+#ifdef IS_PLAT_WINDOWS
   i32 source;
   errno_t err = _sopen_s(&source, from.data(), O_RDONLY, _SH_DENYNO, 0);
   if (err != 0) {
@@ -93,7 +93,7 @@ bool copy_file(const std::string_view from, const std::string_view to) {
     return false;
   }
 
-#if IS_PLAT_WINDOWS
+#ifdef IS_PLAT_WINDOWS
   i32 dest;
   errno_t err2 = _sopen_s(&dest, to.data(), O_CREAT | O_WRONLY | O_TRUNC,
                           _SH_DENYNO, S_IRUSR | S_IWUSR);

@@ -96,7 +96,7 @@ chrb --src ./my_backup --dest ./my_world --dim end --type=all --min_x -1 --min_z
 ### Show Help: `chrb -h` or `chrb --help`
 
 - Multiple values specification like a `--type=region,entities` is currently not supported.
-```toml
+```
                      chrb
 
   =-=-= chunk rollback tool for minecraft =-=-=
@@ -113,6 +113,7 @@ Options:
   -z, --min_z <n>                              minimum chunk z coordinate [required]
   -Z, --max_z <n>                              maximum chunk z coordinate [required]
   -j, --num_threads <n>                        number of worker threads [optional, default:half of num threads on your hardware]
+  -b, --bulk_copy                              use bulk copy for full region rollback [optional]
   -V, --verbose                                enable verbose output [optional]
   -h, --help                                   print this help message [optional]
   -v, --version                                print version [optional]

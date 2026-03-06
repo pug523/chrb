@@ -10,10 +10,10 @@
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
 
-namespace core {
+namespace region {
 
-std::vector<bool> build_sector_map(const MappedFile& file) {
-  const size_t total_sectors = file.size() / kSectorSize;
+std::vector<bool> build_sector_map(const core::MappedFile& file) {
+  const size_t total_sectors = file.size() / core::kSectorSize;
   std::vector<bool> used(total_sectors, false);
 
   if (total_sectors > 0) {
@@ -43,4 +43,4 @@ std::vector<bool> build_sector_map(const MappedFile& file) {
   return used;
 }
 
-}  // namespace core
+}  // namespace region

@@ -5,6 +5,7 @@
 #include "app/args/parser.h"
 
 #include <cstddef>
+#include <optional>
 #include <print>
 #include <string>
 #include <string_view>
@@ -26,28 +27,25 @@ ArgParser::ArgParser(std::string_view program_name,
 
 void ArgParser::add(ArgDef def) {
   dcheck(!(def.required && !def.takes_value));
-  long_name_to_defs_index_[std::string(def.long_name)] = defs_.size();
-  short_name_to_defs_index_[std::string(def.short_name)] = defs_.size();
+  const size_t idx = defs_.size();
+  l_to_defs_indices_.emplace(def.long_name, idx);
+  if (!def.short_name.empty()) {
+    s_to_def_indices_.emplace(def.short_name, idx);
+  }
   defs_.push_back(std::move(def));
   matched_.push_back(false);
 }
 
-const ArgDef* ArgParser::find(std::string_view token) const {
-  const auto& long_itr = long_name_to_defs_index_.find(std::string(token));
-  if (long_itr != long_name_to_defs_index_.end()) {
-    return &defs_[long_itr->second];
+std::optional<size_t> ArgParser::find_index(std::string_view token) const {
+  if (const auto it = l_to_defs_indices_.find(token);
+      it != l_to_defs_indices_.end()) {
+    return it->second;
   }
-  const auto& short_itr = short_name_to_defs_index_.find(std::string(token));
-  if (short_itr != short_name_to_defs_index_.end()) {
-    return &defs_[short_itr->second];
+  if (const auto it = s_to_def_indices_.find(token);
+      it != s_to_def_indices_.end()) {
+    return it->second;
   }
-  // for (const auto& d : defs_) {
-  //   if (token == d.long_name ||
-  //       (!d.short_name.empty() && token == d.short_name)) {
-  //     return &d;
-  //   }
-  // }
-  return nullptr;
+  return std::nullopt;
 }
 
 ParseResult ArgParser::parse(i32 argc, char** argv) {
@@ -61,45 +59,61 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
   for (i32 i = 1; i < argc; ++i) {
     const std::string_view token = argv[i];
     const size_t eq_pos = token.find('=');
-    const ArgDef* def = find(token);
 
-    if (!def) {
-      std::println(stderr, "{}unknown argument: '{}'", error_prefix(), token);
+    // split "--key=value" -> key="--key", inline_value="value"
+    const std::string_view key =
+        (eq_pos != std::string_view::npos) ? token.substr(0, eq_pos) : token;
+
+    const std::optional<size_t> idx = find_index(key);
+
+    if (!idx.has_value()) {
+      std::println(stderr, "{}unknown argument: '{}'", error_prefix(), key);
       result = ParseResult::UnknownArgument;
       continue;
-    } else if (def->takes_value) {
+    }
+
+    const ArgDef& def = defs_[*idx];
+
+    if (def.takes_value) {
       std::string_view value;
       if (eq_pos != std::string_view::npos) {
+        // --key=value form
         value = token.substr(eq_pos + 1);
       } else if (i + 1 < argc) {
+        // --key value form
         value = argv[++i];
       } else {
         std::println(stderr, "{}argument '{}' requires a value", error_prefix(),
-                     token);
+                     key);
+        result = ParseResult::MissingValue;
         continue;
       }
-      def->on_match(value);
-      matched_[static_cast<size_t>(def - defs_.data())] = true;
-    } else if (!def->takes_value) {
+      if (def.on_match) {
+        def.on_match(value);
+      }
+      matched_[*idx] = true;
+    } else {
+      // flag: --key=anything is an error
       if (eq_pos != std::string_view::npos) {
         std::println(stderr, "{}argument '{}' does not take a value",
-                     error_prefix(), token);
-      } else {
-        def->on_match({});
-        // --help short-circuits
-        if (token == "--help" || token == "-h") {
-          print_help();
-          return ParseResult::PrintHelp;
-        } else if (token == "--version" || token == "-v") {
-          print_version();
-          return ParseResult::PrintVersion;
-        }
+                     error_prefix(), key);
+        continue;
       }
 
-    } else {
-      // unreachable
-      dcheck(false);
-      continue;
+      // short-circuit before on_match so side-effects are avoided
+      if (key == "--help" || key == "-h") {
+        print_help();
+        return ParseResult::PrintHelp;
+      }
+      if (key == "--version" || key == "-v") {
+        print_version();
+        return ParseResult::PrintVersion;
+      }
+
+      if (def.on_match) {
+        def.on_match({});
+      }
+      matched_[*idx] = true;
     }
   }
 
@@ -153,7 +167,7 @@ void ArgParser::print_help() const {
   // usage line
   print_usage(color);
 
-  // options table
+  // options table header
   if (color) {
     std::print("{}{}", kBold, kBrightWhite);
   }
@@ -189,16 +203,13 @@ void ArgParser::print_help() const {
     if (left.size() < pad) {
       left.append(pad - left.size(), ' ');
     }
-    if (color) {
-      std::print("{}", kDim);
-    }
 
     const std::string_view req = d.required ? " [required]" : " [optional]";
     if (color) {
-      std::println("{}{}{}{}{}{}", left, kBold, kBrightWhite, d.description,
+      std::println("{}{}{}{}{}{}{}", left, kBold, kBrightWhite, d.description,
                    kDim, req, kReset);
     } else {
-      std::println("{}{}", left, d.description);
+      std::println("{}{}{}", left, d.description, req);
     }
   }
   std::print("\n");

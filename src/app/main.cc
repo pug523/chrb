@@ -8,5 +8,5 @@
 int main(int argc, char** argv) {
   core::register_console();
 
-  return core::rollback(argc, argv);
+  return rollback(argc, argv);
 }

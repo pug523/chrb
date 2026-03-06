@@ -9,6 +9,6 @@
 
 namespace core {
 
-ArgParser build_arg_parser(RollbackConfig* config);
+ArgParser build_arg_parser(region::RollbackConfig* config);
 
 }  // namespace core

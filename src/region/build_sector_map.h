@@ -8,8 +8,8 @@
 
 #include "core/mem/mapped_file.h"
 
-namespace core {
+namespace region {
 
-std::vector<bool> build_sector_map(const MappedFile& file);
+std::vector<bool> build_sector_map(const core::MappedFile& file);
 
 }

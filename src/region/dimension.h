@@ -9,7 +9,7 @@
 #include "core/check.h"
 #include "core/core.h"
 
-namespace core {
+namespace region {
 
 enum class Dimension : u8 {
   Unknown,
@@ -40,4 +40,4 @@ inline const char* dimension_path_with_slash(Dimension d) {
   }
 }
 
-}  // namespace core
+}  // namespace region

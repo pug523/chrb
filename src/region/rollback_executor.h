@@ -23,7 +23,7 @@
 #include "region/rollback_task.h"
 #include "region/rollback_type.h"
 
-namespace core {
+namespace region {
 
 enum class RollbackResult : u8 {
   // for static_cast<i32>
@@ -62,23 +62,45 @@ class RollbackExecutor {
 
  private:
   void schedule(Dimension dimension, RollbackType type);
+  void schedule_for_each_region_requested(const i32 min_region_x,
+                                          const i32 max_region_x,
+                                          const i32 min_region_z,
+                                          const i32 max_region_z,
+                                          const Dimension dimension,
+                                          const RollbackType type);
+  void schedule_for_each_region_in_mca_dir(const i32 min_region_x,
+                                           const i32 max_region_x,
+                                           const i32 min_region_z,
+                                           const i32 max_region_z,
+                                           const Dimension dimension,
+                                           const RollbackType type);
+
+#ifdef IS_PLAT_LINUX
+  void run_full_copy_batch();
+#endif
 
   void start_workers();
 
   void worker_thread();
-
   void run_task(const RollbackTask& task);
 
   void rollback_region(i32 rx,
                        i32 rz,
                        std::string_view src_file,
                        std::string_view dest_file);
-
   void rollback_chunks(i32 rx,
                        i32 rz,
                        ChunkRange range,
                        const std::string& src_file,
                        const std::string& dest_file);
+
+  bool build_region_paths(const RollbackTask& task,
+                          std::string* out_src,
+                          std::string* out_dest);
+
+  static bool parse_region_filename(const std::string& path,
+                                    i32* out_rx,
+                                    i32* out_rz);
 
   std::queue<RollbackTask> region_queue_;
   std::mutex mutex_;
@@ -103,4 +125,4 @@ class RollbackExecutor {
   // static constexpr const u64 kChunksPerRegion = 1024;
 };
 
-}  // namespace core
+}  // namespace region

@@ -18,12 +18,12 @@
 #include "region/find_free_sector.h"
 #include "region/location.h"
 
-namespace core {
+namespace region {
 
 void ChunkProcessor::init(i32 rx,
                           i32 rz,
-                          MappedFile* src,
-                          MappedFile* dest,
+                          core::MappedFile* src,
+                          core::MappedFile* dest,
                           bool verbose) {
   rx_ = rx;
   rz_ = rz;
@@ -49,7 +49,7 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
       std::println(
           "{}c({:4}, {:4}) ignored because both src and dest data did not "
           "exist",
-          debug_prefix(), cx, cz);
+          core::debug_prefix(), cx, cz);
     }
     return;
   } else if (src_loc.offset == 0 && dest_loc.offset != 0) {
@@ -58,49 +58,50 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
     dest_->write(static_cast<size_t>(index) * 4, kZero, 4);
     if (verbose_) {
       std::println("{}c({:4}, {:4}) deleted because src did not exist",
-                   debug_prefix(), cx, cz);
+                   core::debug_prefix(), cx, cz);
     }
     return;
   } else if (src_loc.offset != 0 && dest_loc.offset == 0) {
-    const size_t bytes = src_loc.sectors * kSectorSize;
+    const size_t bytes = src_loc.sectors * core::kSectorSize;
     std::vector<char> buffer(bytes);
-    src_->read(static_cast<size_t>(src_loc.offset) * kSectorSize, buffer.data(),
-               bytes);
+    src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
+               buffer.data(), bytes);
 
     const std::vector<bool> used = build_sector_map(*dest_);
     i32 new_offset = find_free_sector(used, src_loc.sectors);
 
     if (new_offset < 0) {
-      new_offset = static_cast<i32>(dest_->size() / kSectorSize);
+      new_offset = static_cast<i32>(dest_->size() / core::kSectorSize);
       dest_->resize(dest_->size() + bytes);
     }
 
-    dest_->write(static_cast<size_t>(new_offset) * kSectorSize, buffer.data(),
-                 bytes);
+    dest_->write(static_cast<size_t>(new_offset) * core::kSectorSize,
+                 buffer.data(), bytes);
 
     update_location_table(static_cast<size_t>(index), src_loc.sectors,
                           new_offset);
     update_timestamp(static_cast<size_t>(index));
 
     if (verbose_) {
-      std::println("{}c({:4}, {:4}) added", debug_prefix(), cx, cz);
+      std::println("{}c({:4}, {:4}) added", core::debug_prefix(), cx, cz);
     }
     return;
   } else if (src_loc.offset != 0 && dest_loc.offset != 0) {
-    const size_t src_bytes = src_loc.sectors * kSectorSize;
+    const size_t src_bytes = src_loc.sectors * core::kSectorSize;
     std::vector<u8> buffer(src_bytes);
-    src_->read(static_cast<size_t>(src_loc.offset) * kSectorSize, buffer.data(),
-               src_bytes);
+    src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
+               buffer.data(), src_bytes);
 
     if (src_loc.sectors <= dest_loc.sectors) [[likely]] {
       // can be overwritten as is
-      dest_->write(static_cast<size_t>(dest_loc.offset) * kSectorSize,
+      dest_->write(static_cast<size_t>(dest_loc.offset) * core::kSectorSize,
                    buffer.data(), src_bytes);
 
       // no need to update location table
 
       if (verbose_) {
-        std::println("{}c({:4}, {:4}) overwritten", debug_prefix(), cx, cz);
+        std::println("{}c({:4}, {:4}) overwritten", core::debug_prefix(), cx,
+                     cz);
       }
     } else {
       // relocation
@@ -117,19 +118,19 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
       i32 new_offset = find_free_sector(used, src_loc.sectors);
 
       if (new_offset < 0) {
-        new_offset = static_cast<i32>(dest_->size() / kSectorSize);
+        new_offset = static_cast<i32>(dest_->size() / core::kSectorSize);
         dest_->resize(dest_->size() + src_bytes);
       }
 
       // write to new location
-      dest_->write(static_cast<size_t>(new_offset) * kSectorSize, buffer.data(),
-                   src_bytes);
+      dest_->write(static_cast<size_t>(new_offset) * core::kSectorSize,
+                   buffer.data(), src_bytes);
 
       update_location_table(static_cast<size_t>(index), src_loc.sectors,
                             new_offset);
 
       if (verbose_) {
-        std::println("{}c({:4}, {:4}) relocated", debug_prefix(), cx, cz);
+        std::println("{}c({:4}, {:4}) relocated", core::debug_prefix(), cx, cz);
       }
     }
 
@@ -170,4 +171,4 @@ void ChunkProcessor::update_timestamp(size_t index) {
   dest_->write(4096 + index * 4, ts, 4);
 }
 
-}  // namespace core
+}  // namespace region

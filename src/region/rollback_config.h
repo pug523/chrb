@@ -12,7 +12,7 @@
 #include "region/dimension.h"
 #include "region/rollback_type.h"
 
-namespace core {
+namespace region {
 
 struct RollbackConfig {
   std::string src_world = "";
@@ -26,7 +26,8 @@ struct RollbackConfig {
   i32 num_threads = static_cast<i32>(std::thread::hardware_concurrency()) / 2;
   Dimension dimension = Dimension::Unknown;
   RollbackType type = RollbackType::Unknown;
+  bool bulk_copy = false;
   bool verbose = false;
 };
 
-}  // namespace core
+}  // namespace region

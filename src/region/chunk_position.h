@@ -6,11 +6,11 @@
 
 #include "core/core.h"
 
-namespace core {
+namespace region {
 
 struct ChunkPosition {
   i32 x;
   i32 z;
 };
 
-}  // namespace core
+}  // namespace region

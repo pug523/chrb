@@ -9,7 +9,7 @@
 #include "core/check.h"
 #include "core/core.h"
 
-namespace core {
+namespace region {
 
 enum class RollbackType : u8 {
   Unknown,
@@ -43,4 +43,4 @@ inline const char* type_path(RollbackType t) {
   }
 }
 
-}  // namespace core
+}  // namespace region

@@ -29,9 +29,9 @@ class MappedFile {
 
   bool resize(size_t new_size);
 
-  inline void read(size_t offset, void* dst, size_t len) const {
+  inline void read(size_t offset, void* dest, size_t len) const {
     dcheck(offset + len <= size_);
-    std::memcpy(dst, data_ + offset, len);
+    std::memcpy(dest, data_ + offset, len);
   }
 
   inline void write(size_t offset, const void* src, size_t len) {

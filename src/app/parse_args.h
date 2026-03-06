@@ -7,8 +7,6 @@
 #include "core/core.h"
 #include "region/rollback_config.h"
 
-namespace core {
-
 enum class ArgStatus : u8 {
   Success,
   PrintHelp,
@@ -22,10 +20,8 @@ enum class ArgStatus : u8 {
   InvalidNumThreads,
 };
 
-ArgStatus parse_args(i32 argc, char** argv, RollbackConfig* config);
+ArgStatus parse_args(i32 argc, char** argv, region::RollbackConfig* config);
 
 // validate config after parsing and report errors
 // returns ArgStatus::Success when everything is valid
-ArgStatus validate_config(RollbackConfig* config);
-
-}  // namespace core
+ArgStatus validate_config(region::RollbackConfig* config);

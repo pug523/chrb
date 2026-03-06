@@ -9,7 +9,7 @@
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
 
-namespace core {
+namespace region {
 
 class ChunkProcessor {
  public:
@@ -22,7 +22,11 @@ class ChunkProcessor {
   ChunkProcessor(ChunkProcessor&&) noexcept = default;
   ChunkProcessor& operator=(ChunkProcessor&&) noexcept = default;
 
-  void init(i32 rx, i32 rz, MappedFile* src, MappedFile* dest, bool verbose);
+  void init(i32 rx,
+            i32 rz,
+            core::MappedFile* src,
+            core::MappedFile* dest,
+            bool verbose);
 
   // TODO: error handling is maybe needed?
   void process(i32 cx, i32 cz);
@@ -34,9 +38,9 @@ class ChunkProcessor {
 
   i32 rx_;
   i32 rz_;
-  MappedFile* src_ = nullptr;
-  MappedFile* dest_ = nullptr;
+  core::MappedFile* src_ = nullptr;
+  core::MappedFile* dest_ = nullptr;
   bool verbose_ = false;
 };
 
-}  // namespace core
+}  // namespace region

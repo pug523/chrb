@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -29,6 +30,16 @@ struct ArgDef {
   // called when the arg is matched
   // `value` is the next token if takes_value==true, else empty
   std::function<void(std::string_view value)> on_match;
+};
+
+struct StringHash {
+  using is_transparent = void;
+  size_t operator()(std::string_view sv) const noexcept {
+    return std::hash<std::string_view>{}(sv);
+  }
+  size_t operator()(const std::string& s) const noexcept {
+    return std::hash<std::string_view>{}(s);
+  }
 };
 
 enum class ParseResult : u8 {
@@ -59,17 +70,18 @@ class ArgParser {
   void print_version() const;
 
  private:
+  std::optional<size_t> find_index(std::string_view token) const;
+  void print_usage(bool color) const;
+
   std::string_view program_name_;
   std::string_view version_;
   std::string_view tagline_;
   std::vector<ArgDef> defs_;
-  std::unordered_map<std::string, size_t> long_name_to_defs_index_;
-  std::unordered_map<std::string, size_t> short_name_to_defs_index_;
+  std::unordered_map<std::string, size_t, StringHash, std::equal_to<>>
+      l_to_defs_indices_;
+  std::unordered_map<std::string, size_t, StringHash, std::equal_to<>>
+      s_to_def_indices_;
   std::vector<bool> matched_;
-  std::vector<std::string_view> positionals_;
-
-  const ArgDef* find(std::string_view token) const;
-  void print_usage(const bool color) const;
 };
 
 }  // namespace core

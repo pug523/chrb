@@ -7,13 +7,13 @@
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
 
-namespace core {
+namespace region {
 
 struct LocationEntry {
   u32 offset = 0;
   u8 sectors = 0;
 };
 
-LocationEntry read_location(const MappedFile& file, i32 index);
+LocationEntry read_location(const core::MappedFile& file, i32 index);
 
-}  // namespace core
+}  // namespace region

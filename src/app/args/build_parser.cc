@@ -46,7 +46,7 @@ bool safe_stoi(std::string_view str, i32* dest) {
 
 }  // namespace
 
-ArgParser build_arg_parser(RollbackConfig* config) {
+ArgParser build_arg_parser(region::RollbackConfig* config) {
   ArgParser p("chrb", PROJECT_VERSION,
               "=-=-= chunk rollback tool for minecraft =-=-=");
 
@@ -163,6 +163,16 @@ ArgParser build_arg_parser(RollbackConfig* config) {
               std::exit(1);
             }
           },
+  });
+
+  p.add({
+      .long_name = "--bulk_copy",
+      .short_name = "-b",
+      .meta = "",
+      .description = "use bulk copy for full region rollback",
+      .takes_value = false,
+      .required = false,
+      .on_match = [config](std::string_view) { config->bulk_copy = true; },
   });
 
   p.add({

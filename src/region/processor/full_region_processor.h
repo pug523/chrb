@@ -4,11 +4,15 @@
 
 #pragma once
 
+#include <cstddef>
+#include <functional>
+#include <string>
 #include <string_view>
+#include <vector>
 
 #include "core/core.h"
 
-namespace core {
+namespace region {
 
 class FullRegionProcessor {
  public:
@@ -21,20 +25,23 @@ class FullRegionProcessor {
   FullRegionProcessor(FullRegionProcessor&&) noexcept = default;
   FullRegionProcessor& operator=(FullRegionProcessor&&) noexcept = default;
 
-  void init(i32 rx,
-            i32 rz,
-            std::string_view src,
-            std::string_view dest,
-            bool verbose);
+  void init(bool verbose);
 
-  bool process();
+#ifdef IS_PLAT_LINUX
+  size_t process_batch(const std::vector<std::string>& srcs,
+                       const std::vector<std::string>& dsts,
+                       u32 queue_depth,
+                       const std::function<void(size_t)>& success_cb,
+                       const std::function<void(size_t)>& failure_cb);
+#endif
+
+  bool process_one(const i32 rx,
+                   const i32 rz,
+                   const std::string_view src,
+                   const std::string_view dest);
 
  private:
-  i32 rx_;
-  i32 rz_;
-  std::string_view src_;
-  std::string_view dest_;
   bool verbose_;
 };
 
-}  // namespace core
+}  // namespace region

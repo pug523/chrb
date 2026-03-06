@@ -6,7 +6,7 @@
 
 #include "core/core.h"
 
-namespace core {
+namespace region {
 
 struct ChunkRange {
   i32 min_x;
@@ -15,4 +15,4 @@ struct ChunkRange {
   i32 max_z;
 };
 
-}  // namespace core
+}  // namespace region

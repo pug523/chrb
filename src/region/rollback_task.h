@@ -10,7 +10,7 @@
 #include "region/region_position.h"
 #include "region/rollback_type.h"
 
-namespace core {
+namespace region {
 
 enum class RollbackMode : u8 {
   FullCopy,
@@ -25,4 +25,4 @@ struct RollbackTask {
   RollbackMode mode;
 };
 
-}  // namespace core
+}  // namespace region

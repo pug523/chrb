@@ -9,9 +9,9 @@
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
 
-namespace core {
+namespace region {
 
-LocationEntry read_location(const MappedFile& file, i32 index) {
+LocationEntry read_location(const core::MappedFile& file, i32 index) {
   u8 buf[4];
   file.read(static_cast<size_t>(index) * 4, buf, 4);
 
@@ -22,4 +22,4 @@ LocationEntry read_location(const MappedFile& file, i32 index) {
   };
 }
 
-}  // namespace core
+}  // namespace region

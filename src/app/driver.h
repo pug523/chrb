@@ -6,8 +6,4 @@
 
 #include "core/core.h"
 
-namespace core {
-
 i32 rollback(i32 argc, char** argv);
-
-}

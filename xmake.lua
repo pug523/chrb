@@ -3,7 +3,7 @@
 -- which can be found in the LICENSE file.
 
 set_project("chrb")
-local project_version = "0.1.0"
+local project_version = "0.1.1"
 set_version(project_version)
 
 set_policy("build.ccache", true)

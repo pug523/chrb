@@ -4,6 +4,7 @@
 
 #include "app/driver.h"
 
+#include <cstddef>  // NOLINT
 #include <format>
 #include <print>
 #include <string>

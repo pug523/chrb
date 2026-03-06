@@ -7,9 +7,7 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
-#include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 #include "core/core.h"
@@ -30,16 +28,6 @@ struct ArgDef {
   // called when the arg is matched
   // `value` is the next token if takes_value==true, else empty
   std::function<void(std::string_view value)> on_match;
-};
-
-struct StringHash {
-  using is_transparent = void;
-  size_t operator()(std::string_view sv) const noexcept {
-    return std::hash<std::string_view>{}(sv);
-  }
-  size_t operator()(const std::string& s) const noexcept {
-    return std::hash<std::string_view>{}(s);
-  }
 };
 
 enum class ParseResult : u8 {
@@ -77,10 +65,6 @@ class ArgParser {
   std::string_view version_;
   std::string_view tagline_;
   std::vector<ArgDef> defs_;
-  std::unordered_map<std::string, size_t, StringHash, std::equal_to<>>
-      l_to_defs_indices_;
-  std::unordered_map<std::string, size_t, StringHash, std::equal_to<>>
-      s_to_def_indices_;
   std::vector<bool> matched_;
 };
 

@@ -9,7 +9,6 @@
 #include <print>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 
 #include "core/check.h"
@@ -27,23 +26,16 @@ ArgParser::ArgParser(std::string_view program_name,
 
 void ArgParser::add(ArgDef def) {
   dcheck(!(def.required && !def.takes_value));
-  const size_t idx = defs_.size();
-  l_to_defs_indices_.emplace(def.long_name, idx);
-  if (!def.short_name.empty()) {
-    s_to_def_indices_.emplace(def.short_name, idx);
-  }
   defs_.push_back(std::move(def));
   matched_.push_back(false);
 }
 
 std::optional<size_t> ArgParser::find_index(std::string_view token) const {
-  if (const auto it = l_to_defs_indices_.find(token);
-      it != l_to_defs_indices_.end()) {
-    return it->second;
-  }
-  if (const auto it = s_to_def_indices_.find(token);
-      it != s_to_def_indices_.end()) {
-    return it->second;
+  for (size_t i = 0; i < defs_.size(); ++i) {
+    const ArgDef& def = defs_[i];
+    if (def.short_name == token || def.long_name == token) {
+      return i;
+    }
   }
   return std::nullopt;
 }

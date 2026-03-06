@@ -22,7 +22,7 @@ This is useful for fixing localized griefing, corrupted chunks, or reversing acc
 
 (To run, replace `[options]` with proper configuration)
 
-### Prebuilt binary
+### Download prebuilt binary (Recommended)
 
 Install from [GitHub Release Page](https://github.com/pug523/chrb/releases/latest)
 
@@ -30,7 +30,7 @@ Install from [GitHub Release Page](https://github.com/pug523/chrb/releases/lates
 ./chrb [options]
 ```
 
-### xmake
+### Build manually with xmake
 #### Dependencies
 
 - [xmake](https://xmake.io/posts/quickstart-1-installation.html)
@@ -44,13 +44,15 @@ xmake build chrb
 # A: run with xmake
 xmake run chrb [options]
 
-# B: install to your system and run it
+# B: install to the directory you like and run it
+xmake install --installdir="./install"
+./install/bin/chrb [options]
+
+# C: install to your system and run it
 sudo xmake install --root # linux / macos
 chrb --version # check if installed
 chrb [options]
 
-# C: install to the directory you like and run it
-xmake install --installdir="./install" && ./install/bin/chrb [options]
 ```
 
 ## Quick Start

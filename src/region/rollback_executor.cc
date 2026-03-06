@@ -359,7 +359,7 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
       dir_exists = false;
     } else if (!core::is_dir(dest_dir)) {
       std::println(stderr, "{}directory not found: {}", core::error_prefix(),
-                   src_dir);
+                   dest_dir);
       dir_exists = false;
     }
     if (!dir_exists) {

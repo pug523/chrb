@@ -237,6 +237,13 @@ target("chrb.region")
   set_default(false)
 target_end()
 
+target("libchrb")
+  add_deps("chrb.root_config")
+  set_kind("static")
+  add_deps(chrb_modules)
+  set_default(false)
+target_end()
+
 target("chrb")
   add_deps("chrb.root_config")
   set_kind("binary")

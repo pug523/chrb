@@ -9,7 +9,6 @@
 #include <condition_variable>
 #include <cstddef>
 #include <mutex>
-#include <new>
 #include <queue>
 #include <string>
 #include <string_view>
@@ -92,8 +91,7 @@ class RollbackExecutor {
   RollbackConfig config_;
   std::chrono::time_point<std::chrono::steady_clock> start_time_;
 
-  static constexpr size_t kAlignSize =
-      std::hardware_destructive_interference_size;
+  static constexpr size_t kAlignSize = 64;
 
   alignas(kAlignSize) std::atomic<u64> successfull_region_count_ = 0;
   alignas(kAlignSize) std::atomic<u64> failed_region_count_ = 0;

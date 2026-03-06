@@ -2,13 +2,13 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "core/cli/parse_args.h"
+#include "app/parse_args.h"
 
 #include <print>
 #include <thread>
 
-#include "core/args/build_parser.h"
-#include "core/args/parser.h"
+#include "app/args/build_parser.h"
+#include "app/args/parser.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "region/dimension.h"

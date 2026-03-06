@@ -2,7 +2,7 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "core/args/build_parser.h"
+#include "app/args/build_parser.h"
 
 #include <charconv>
 #include <cstdlib>
@@ -10,7 +10,7 @@
 #include <string_view>
 #include <system_error>
 
-#include "core/args/parser.h"
+#include "app/args/parser.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "region/rollback_config.h"

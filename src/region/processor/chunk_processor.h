@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
 
@@ -27,6 +29,8 @@ class ChunkProcessor {
 
  private:
   i32 chunk_index(i32 chunk_x, i32 chunk_z);
+  void update_location_table(size_t index, u8 sectors, i32 new_offset);
+  void update_timestamp(size_t index);
 
   i32 rx_;
   i32 rz_;

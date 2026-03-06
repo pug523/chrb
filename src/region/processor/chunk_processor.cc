@@ -54,7 +54,7 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
     return;
   } else if (src_loc.offset == 0 && dest_loc.offset != 0) {
     // src does not exist and dest exists: delete the chunk
-    constexpr u8 kZero[4] = {0, 0, 0, 0};
+    constexpr const u8 kZero[4] = {0, 0, 0, 0};
     dest_->write(static_cast<size_t>(index) * 4, kZero, 4);
     if (verbose_) {
       std::println("{}c({:4}, {:4}) deleted because src did not exist",
@@ -78,17 +78,9 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
     dest_->write(static_cast<size_t>(new_offset) * kSectorSize, buffer.data(),
                  bytes);
 
-    // update location table
-    u8 loc[4];
-    loc[0] = static_cast<u8>((new_offset >> 16) & 0xFF);
-    loc[1] = static_cast<u8>((new_offset >> 8) & 0xFF);
-    loc[2] = static_cast<u8>(new_offset & 0xFF);
-    loc[3] = static_cast<u8>(src_loc.sectors);
-
-    // update timestamp
-    const u32 now = static_cast<u32>(time(nullptr));
-    const u8 ts[4] = {u8(now >> 24), u8(now >> 16), u8(now >> 8), u8(now)};
-    dest_->write(4096 + static_cast<size_t>(index) * 4, ts, 4);
+    update_location_table(static_cast<size_t>(index), src_loc.sectors,
+                          new_offset);
+    update_timestamp(static_cast<size_t>(index));
 
     if (verbose_) {
       std::println("{}c({:4}, {:4}) added", debug_prefix(), cx, cz);
@@ -104,6 +96,8 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
       // can be overwritten as is
       dest_->write(static_cast<size_t>(dest_loc.offset) * kSectorSize,
                    buffer.data(), src_bytes);
+
+      // no need to update location table
 
       if (verbose_) {
         std::println("{}c({:4}, {:4}) overwritten", debug_prefix(), cx, cz);
@@ -131,28 +125,15 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
       dest_->write(static_cast<size_t>(new_offset) * kSectorSize, buffer.data(),
                    src_bytes);
 
-      // update location table
-      u8 loc[4];
-      loc[0] = static_cast<u8>((new_offset >> 16) & 0xFF);
-      loc[1] = static_cast<u8>((new_offset >> 8) & 0xFF);
-      loc[2] = static_cast<u8>(new_offset & 0xFF);
-      loc[3] = static_cast<u8>(src_loc.sectors);
-      dest_->write(static_cast<size_t>(index) * 4, loc, 4);
+      update_location_table(static_cast<size_t>(index), src_loc.sectors,
+                            new_offset);
 
       if (verbose_) {
         std::println("{}c({:4}, {:4}) relocated", debug_prefix(), cx, cz);
       }
     }
 
-    // update timestamp
-    const uint32_t now = static_cast<u32>(time(nullptr));
-    u8 ts[4] = {
-        u8(now >> 24),
-        u8(now >> 16),
-        u8(now >> 8),
-        u8(now),
-    };
-    dest_->write(4096 + static_cast<size_t>(index) * 4, ts, 4);
+    update_timestamp(static_cast<size_t>(index));
     return;
   } else {
     // unreachable
@@ -165,6 +146,28 @@ inline i32 ChunkProcessor::chunk_index(i32 chunk_x, i32 chunk_z) {
   const i32 local_x = chunk_x & 31;
   const i32 local_z = chunk_z & 31;
   return local_x + (local_z << 5);
+}
+
+void ChunkProcessor::update_location_table(size_t index,
+                                           u8 sectors,
+                                           i32 new_offset) {
+  u8 loc[4];
+  loc[0] = static_cast<u8>((new_offset >> 16) & 0xFF);
+  loc[1] = static_cast<u8>((new_offset >> 8) & 0xFF);
+  loc[2] = static_cast<u8>(new_offset & 0xFF);
+  loc[3] = sectors;
+  dest_->write(index * 4, loc, 4);
+}
+
+void ChunkProcessor::update_timestamp(size_t index) {
+  const uint32_t now = static_cast<u32>(time(nullptr));
+  u8 ts[4] = {
+      u8(now >> 24),
+      u8(now >> 16),
+      u8(now >> 8),
+      u8(now),
+  };
+  dest_->write(4096 + index * 4, ts, 4);
 }
 
 }  // namespace core

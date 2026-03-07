@@ -53,10 +53,10 @@ task("format")
     description = "format source code using clang-format"
   })
   on_run(function()
-    local files = os.files("src/**.cc")
-    table.join2(files, os.files("src/**.h"))
-    table.join2(files, os.files("tests/**.cc"))
-    table.join2(files, os.files("tests/**.h"))
+    local files = os.files("src/**/*.cc")
+    table.join2(files, os.files("src/**/*.h"))
+    table.join2(files, os.files("tests/**/*.cc"))
+    table.join2(files, os.files("tests/**/*.h"))
 
     if #files > 0 then
       os.runv("clang-format", table.join({
@@ -76,8 +76,23 @@ task("lint")
     description = "lint source code using cpplint"
   })
   on_run(function()
-    os.run("uv sync")
-    os.run("uv run cpplint --recursive src tests")
+    os.iorun("uv sync")
+    os.iorun("uv run cpplint --recursive src tests")
+
+    local files = os.files("src/**/*.cc")
+    table.join2(files, os.files("src/**/*.h"))
+    table.join2(files, os.files("tests/**/*.cc"))
+    table.join2(files, os.files("tests/**/*.h"))
+
+    if #files > 0 then
+      os.iorunv("clang-format", table.join({
+        "--dry-run",
+        "--fail-on-incomplete-format",
+        "--ferror-limit=1",
+        "--sort-includes",
+        "-i"
+      }, files))
+    end
   end)
 task_end()
 
@@ -201,7 +216,7 @@ target("chrb.root_config")
   if is_mode("debug") then
     set_symbols("debug", {public = true})
     set_optimize("none", {public = true})
-    add_defines("LLVM_ENABLE_STATS", "LLVM_ENABLE_DUMP", {public = true})
+    add_defines("DEBUG", "LLVM_ENABLE_STATS", "LLVM_ENABLE_DUMP", {public = true})
     if has_config("sanitizers") and get_config("sanitizers") and not is_plat("windows") then
       set_policy("build.sanitizer.address", true)
       set_policy("build.sanitizer.undefined", true)
@@ -213,6 +228,7 @@ target("chrb.root_config")
     set_symbols("hidden", {public = true})
     set_optimize("fastest", {public = true})
     set_strip("all", {public = true})
+    add_defines("NDEBUG", {public = true})
     if has_config("native") and get_config("native") and not is_cross() then
       add_cxxflags("-march=native", {public = true})
     end

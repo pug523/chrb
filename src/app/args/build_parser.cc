@@ -19,13 +19,13 @@ namespace core {
 
 // fallback
 #ifndef PROJECT_VERSION
-#define PROJECT_VERSION "0.0.0"
+#define PROJECT_VERSION "undefined"
 #endif
 
 namespace {
 
 bool safe_stoi(std::string_view str, i32* dest) {
-  auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), *dest);
+  const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), *dest);
 
   if (ec == std::errc()) {
     return true;

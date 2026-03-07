@@ -28,10 +28,10 @@ i32 rollback(i32 argc, char** argv) {
   }
 
   if (config.src_world.back() != '/' && config.src_world.back() != '\\') {
-    config.src_world.push_back('/');
+    config.src_world.push_back(PATH_DELIMITER);
   }
   if (config.dest_world.back() != '/' && config.src_world.back() != '\\') {
-    config.dest_world.push_back('/');
+    config.dest_world.push_back(PATH_DELIMITER);
   }
 
   {

@@ -346,11 +346,11 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
   std::string src_dir(config_.src_world);
   src_dir.append(dimension_path_with_slash(task.dimension))
       .append(type_path(task.type))
-      .push_back('/');
+      .push_back(PATH_DELIMITER);
   std::string dest_dir(config_.dest_world);
   dest_dir.append(dimension_path_with_slash(task.dimension))
       .append(type_path(task.type))
-      .push_back('/');
+      .push_back(PATH_DELIMITER);
   {
     bool dir_exists = true;
     if (!core::is_dir(src_dir)) {
@@ -491,9 +491,9 @@ bool RollbackExecutor::build_region_paths(const RollbackTask& task,
 
   const std::string filename =
       std::format("r.{}.{}.mca", task.region.x, task.region.z);
-  src.push_back('/');
+  src.push_back(PATH_DELIMITER);
   src.append(filename);
-  dest.push_back('/');
+  dest.push_back(PATH_DELIMITER);
   dest.append(filename);
 
   *out_src = std::move(src);

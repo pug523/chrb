@@ -81,21 +81,27 @@ jobs:
       - name: package artifact
         shell: bash
         run: |
-          mkdir -p dist
-          cp LICENSE README.md dist/ 2>/dev/null || true
-
+          # mkdir -p dist
+          # cp LICENSE README.md dist/ 2>/dev/null || true
+          # if [[ "${{ matrix.plat }}" == "windows" ]]; then
+          #   cp out/*/chrb.exe dist/
+          #   cd dist && 7z a ../chrb-${{ matrix.suffix }}.zip *
+          # else
+          #   cp out/*/chrb dist/
+          #   cd dist && tar -czvf ../chrb-${{ matrix.suffix }}.tar.gz *
+          # fi
           if [[ "${{ matrix.plat }}" == "windows" ]]; then
-            cp out/*/chrb.exe dist/
-            cd dist && 7z a ../chrb-${{ matrix.suffix }}.zip *
+            cp out/*/chrb.exe ./chrb-${{matrix.suffix}}.exe
           else
-            cp out/*/chrb dist/
-            cd dist && tar -czvf ../chrb-${{ matrix.suffix }}.tar.gz *
+            cp out/*/chrb ./chrb-${{ matrix.suffix }}
+            chmod +x ./chrb-${{ matrix.suffix }}
           fi
 
       - name: upload artifact to release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
-          files: chrb-${{ matrix.suffix }}.${{ matrix.archive }}
+          # files: chrb-${{ matrix.suffix }}.${{ matrix.archive }}
+          files: chrb-${{ matrix.suffix }}*
           draft: true
           generate_release_notes: false
         env:

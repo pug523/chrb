@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <ctime>
 #include <print>
 #include <vector>
 

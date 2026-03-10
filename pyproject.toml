@@ -1,6 +1,6 @@
 [project]
 name = "chrb"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = [{ name = "pugur", email = "pugurmc@gmail.com" }]
 requires-python = ">=3.13"

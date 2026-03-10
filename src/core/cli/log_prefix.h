@@ -10,6 +10,26 @@
 
 namespace core {
 
+enum class ColorMode : u8 {
+  Auto,
+  Always,
+  Never,
+  Unknown,
+};
+
+inline ColorMode str_to_color_mode(const std::string_view s) {
+  // only supports lower case
+  if (s == "auto") {
+    return ColorMode::Auto;
+  } else if (s == "always") {
+    return ColorMode::Always;
+  } else if (s == "never") {
+    return ColorMode::Never;
+  } else {
+    return ColorMode::Unknown;
+  }
+}
+
 enum class LogLevel : u8 {
   Debug,
   Info,
@@ -19,22 +39,22 @@ enum class LogLevel : u8 {
   MaxValue = Fatal,
 };
 
-std::string_view log_prefix(LogLevel level);
+std::string_view log_prefix(ColorMode mode, LogLevel level);
 
-inline std::string_view debug_prefix() {
-  return log_prefix(LogLevel::Debug);
+inline std::string_view debug_prefix(ColorMode mode) {
+  return log_prefix(mode, LogLevel::Debug);
 }
-inline std::string_view info_prefix() {
-  return log_prefix(LogLevel::Info);
+inline std::string_view info_prefix(ColorMode mode) {
+  return log_prefix(mode, LogLevel::Info);
 }
-inline std::string_view warn_prefix() {
-  return log_prefix(LogLevel::Warn);
+inline std::string_view warn_prefix(ColorMode mode) {
+  return log_prefix(mode, LogLevel::Warn);
 }
-inline std::string_view error_prefix() {
-  return log_prefix(LogLevel::Error);
+inline std::string_view error_prefix(ColorMode mode) {
+  return log_prefix(mode, LogLevel::Error);
 }
-inline std::string_view fatal_prefix() {
-  return log_prefix(LogLevel::Fatal);
+inline std::string_view fatal_prefix(ColorMode mode) {
+  return log_prefix(mode, LogLevel::Fatal);
 }
 
 }  // namespace core

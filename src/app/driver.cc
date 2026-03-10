@@ -17,6 +17,8 @@
 #include "region/rollback_config.h"
 #include "region/rollback_executor.h"
 
+namespace app {
+
 i32 rollback(i32 argc, char** argv) {
   region::RollbackConfig config;
   const ArgStatus arg_result = parse_args(argc, argv, &config);
@@ -37,12 +39,12 @@ i32 rollback(i32 argc, char** argv) {
   {
     bool dir_exists = true;
     if (!core::is_dir(config.src_world)) {
-      std::println(stderr, "{}directory not found: {}", core::error_prefix(),
-                   config.src_world);
+      std::println(stderr, "{}directory not found: {}",
+                   core::error_prefix(config.color_mode), config.src_world);
       dir_exists = false;
     } else if (!core::is_dir(config.dest_world)) {
-      std::println(stderr, "{}directory not found: {}", core::error_prefix(),
-                   config.dest_world);
+      std::println(stderr, "{}directory not found: {}",
+                   core::error_prefix(config.color_mode), config.dest_world);
       dir_exists = false;
     }
     if (!dir_exists) {
@@ -72,8 +74,7 @@ verbose = {}
   }
 
   region::RollbackExecutor executor;
-  const bool silent = config.silent;
-  executor.init(std::move(config));
+  executor.init(&config);
 
   executor.start();
   executor.flush();
@@ -83,13 +84,15 @@ verbose = {}
   const u64 failed_region_count = executor.failed_region_count();
   const u64 failed_chunk_count = executor.failed_chunk_count();
 
-  if (!silent) {
+  if (!config.silent) {
     if (successfull_region_count > 0) {
       std::println("{}{:5} full regions processed successfully",
-                   core::info_prefix(), successfull_region_count);
+                   core::info_prefix(config.color_mode),
+                   successfull_region_count);
     }
     if (successfull_chunk_count > 0) {
-      std::println("{}{:5} chunks processed successfully", core::info_prefix(),
+      std::println("{}{:5} chunks processed successfully",
+                   core::info_prefix(config.color_mode),
                    successfull_chunk_count);
     }
   }
@@ -104,15 +107,17 @@ verbose = {}
 [failed regions]
 {}
 )",
-               core::error_prefix(), failed_region_count,
+               core::error_prefix(config.color_mode), failed_region_count,
                failed_regions_string);
     ++result;
   }
   if (failed_chunk_count > 0) {
-    std::println("{}{:5} chunks failed", core::error_prefix(),
+    std::println("{}{:5} chunks failed", core::error_prefix(config.color_mode),
                  failed_chunk_count);
     ++result;
   }
 
   return result;
 }
+
+}  // namespace app

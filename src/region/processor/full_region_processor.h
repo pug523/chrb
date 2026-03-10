@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "core/core.h"
+#include "region/rollback_config.h"
 
 #ifdef IS_PLAT_LINUX
 #include <cstddef>
@@ -28,7 +29,7 @@ class FullRegionProcessor {
   FullRegionProcessor(FullRegionProcessor&&) noexcept = default;
   FullRegionProcessor& operator=(FullRegionProcessor&&) noexcept = default;
 
-  void init(bool verbose);
+  void init(RollbackConfig* config);
 
 #ifdef IS_PLAT_LINUX
   size_t process_batch(const std::vector<std::string>& srcs,
@@ -44,7 +45,7 @@ class FullRegionProcessor {
                    const std::string_view dest);
 
  private:
-  bool verbose_;
+  RollbackConfig* config_ = nullptr;
 };
 
 }  // namespace region

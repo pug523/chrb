@@ -15,7 +15,7 @@
 #include "core/core.h"
 #include "region/rollback_config.h"
 
-namespace core {
+namespace app {
 
 // fallback
 #ifndef PROJECT_VERSION
@@ -33,14 +33,15 @@ bool safe_stoi(std::string_view str, i32* dest) {
   }
   if (ec == std::errc::invalid_argument) {
     std::println(stderr, "{}invalid format: {} (expected number)",
-                 error_prefix(), str);
+                 error_prefix(core::ColorMode::Never), str);
     return false;
   } else if (ec == std::errc::result_out_of_range) {
-    std::println(stderr, "{}out of range: {}", error_prefix(), str);
+    std::println(stderr, "{}out of range: {}",
+                 error_prefix(core::ColorMode::Never), str);
     return false;
   } else {
     std::println(stderr, "{}unknown error: {} (expected number)",
-                 error_prefix(), str);
+                 error_prefix(core::ColorMode::Never), str);
     return false;
   }
 }
@@ -85,10 +86,20 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .long_name = "--type",
       .short_name = "-t",
       .meta = "<region|entities|poi|all>",
-      .description = "rollback type",
+      .description = "rollback type (default: all)",
       .takes_value = true,
       .required = false,
       .on_match = [config](std::string_view v) { config->type_str = v; },
+  });
+
+  p.add({
+      .long_name = "--color",
+      .short_name = "-c",
+      .meta = "<auto|always|never>",
+      .description = "color mode (default: auto)",
+      .takes_value = true,
+      .required = false,
+      .on_match = [config](std::string_view v) { config->color_str = v; },
   });
 
   p.add({
@@ -221,4 +232,4 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   return p;
 }
 
-}  // namespace core
+}  // namespace app

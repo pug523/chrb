@@ -42,7 +42,7 @@ class RollbackExecutor {
   RollbackExecutor(RollbackExecutor&&) noexcept = delete;
   RollbackExecutor& operator=(RollbackExecutor&&) noexcept = delete;
 
-  void init(RollbackConfig&& config);
+  void init(RollbackConfig* config);
 
   void start();
   void flush();
@@ -110,7 +110,7 @@ class RollbackExecutor {
   std::vector<std::thread> workers_;
   std::vector<RegionPosition> failed_regions_;
   // std::vector<ChunkPosition> failed_chunks_;
-  RollbackConfig config_;
+  RollbackConfig* config_;
   std::chrono::time_point<std::chrono::steady_clock> start_time_;
 
   static constexpr size_t kAlignSize = 64;

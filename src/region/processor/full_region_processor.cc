@@ -16,6 +16,7 @@
 #include "core/core.h"
 #include "core/file_util.h"
 #include "core/mem/mapped_file.h"
+#include "region/rollback_config.h"
 
 #ifdef IS_PLAT_WINDOWS
 #include <windows.h>
@@ -34,8 +35,9 @@
 
 namespace region {
 
-void FullRegionProcessor::init(bool verbose) {
-  verbose_ = verbose;
+void FullRegionProcessor::init(RollbackConfig* config) {
+  config_ = config;
+  dcheck(config_);
 }
 
 #ifdef IS_PLAT_LINUX
@@ -75,7 +77,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
   core::MappedFile src_map;
   if (!src_map.open(src)) [[unlikely]] {
     std::println(stderr, "{}failed to open src: {} (in {},{})",
-                 core::error_prefix(), src, rx, rz);
+                 core::error_prefix(config_->color_mode), src, rx, rz);
     return false;
   }
 
@@ -99,13 +101,13 @@ bool FullRegionProcessor::process_one(const i32 rx,
     const i32 fd = ::open(tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
     if (fd < 0) [[unlikely]] {
       std::println(stderr, "{}failed to create tmp: {} (in {},{})",
-                   core::error_prefix(), tmp, rx, rz);
+                   core::error_prefix(config_->color_mode), tmp, rx, rz);
       return false;
     }
     if (ftruncate(fd, static_cast<off_t>(file_size)) < 0) [[unlikely]] {
       ::close(fd);
       std::println(stderr, "{}failed to resize tmp: {} (in {},{})",
-                   core::error_prefix(), tmp, rx, rz);
+                   core::error_prefix(config_->color_mode), tmp, rx, rz);
       return false;
     }
     ::close(fd);
@@ -115,7 +117,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
   core::MappedFile tmp_map;
   if (!tmp_map.open(tmp, file_size)) [[unlikely]] {
     std::println(stderr, "{}failed to open tmp: {} (in {},{})",
-                 core::error_prefix(), tmp, rx, rz);
+                 core::error_prefix(config_->color_mode), tmp, rx, rz);
     return false;
   }
 
@@ -136,7 +138,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
 
   if (!core::rename_file(tmp, dest)) [[unlikely]] {
     std::println(stderr, "{}failed to rename {} to {} (in {},{})",
-                 core::error_prefix(), tmp, dest, rx, rz);
+                 core::error_prefix(config_->color_mode), tmp, dest, rx, rz);
     return false;
   }
 

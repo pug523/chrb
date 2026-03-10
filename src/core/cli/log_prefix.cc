@@ -69,7 +69,7 @@ struct PrefixTable {
   }
 };
 
-const PrefixTable& table() {
+inline const PrefixTable& table() {
   static PrefixTable table = [] {
     PrefixTable t;
     t.init();
@@ -80,10 +80,26 @@ const PrefixTable& table() {
 
 }  // namespace
 
-std::string_view log_prefix(LogLevel level) {
+std::string_view log_prefix(ColorMode mode, LogLevel level) {
   const auto idx = static_cast<std::size_t>(level);
-  const PrefixTable& t = table();
-  return t.use_ansi ? t.ansi[idx].view : kPlainPrefixes[idx];
+  switch (mode) {
+    case ColorMode::Auto: {
+      const PrefixTable& t = table();
+      return t.use_ansi ? t.ansi[idx].view : kPlainPrefixes[idx];
+    }
+    case ColorMode::Always: {
+      const PrefixTable& t = table();
+      return t.ansi[idx].view;
+    }
+    case ColorMode::Never: {
+      return kPlainPrefixes[idx];
+    }
+    default: {
+      // unreachable
+      dcheck(false);
+      return "";
+    }
+  }
 }
 
 }  // namespace core

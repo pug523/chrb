@@ -16,6 +16,7 @@
 #include "region/build_sector_map.h"
 #include "region/find_free_sector.h"
 #include "region/location.h"
+#include "region/rollback_config.h"
 
 namespace region {
 
@@ -23,17 +24,18 @@ void ChunkProcessor::init(i32 rx,
                           i32 rz,
                           core::MappedFile* src,
                           core::MappedFile* dest,
-                          bool verbose) {
+                          RollbackConfig* config) {
   rx_ = rx;
   rz_ = rz;
   src_ = src;
   dest_ = dest;
-  verbose_ = verbose;
+  config_ = config;
 
   dcheck(src_);
   dcheck(dest_);
   dcheck(src_->is_open());
   dcheck(dest_->is_open());
+  dcheck(config_);
 }
 
 void ChunkProcessor::process(i32 cx, i32 cz) {
@@ -64,11 +66,11 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
 
 void ChunkProcessor::ignore_chunk(const i32 cx, const i32 cz) {
   // src and dest do not exist: chunk missing
-  if (verbose_) {
+  if (config_->verbose) {
     std::println(
         "{}c({:4}, {:4}) ignored because both src and dest data did not "
         "exist",
-        core::debug_prefix(), cx, cz);
+        core::debug_prefix(config_->color_mode), cx, cz);
   }
 }
 
@@ -96,8 +98,9 @@ void ChunkProcessor::add_chunk(const i32 cx,
                         new_offset);
   update_timestamp(static_cast<size_t>(index));
 
-  if (verbose_) {
-    std::println("{}c({:4}, {:4}) added", core::debug_prefix(), cx, cz);
+  if (config_->verbose) {
+    std::println("{}c({:4}, {:4}) added",
+                 core::debug_prefix(config_->color_mode), cx, cz);
   }
 }
 
@@ -105,9 +108,9 @@ void ChunkProcessor::delete_chunk(const i32 cx, const i32 cz, const i32 index) {
   // src does not exist and dest exists: delete the chunk
   constexpr const u8 kZero[4] = {0, 0, 0, 0};
   dest_->write(static_cast<size_t>(index) * 4, kZero, 4);
-  if (verbose_) {
+  if (config_->verbose) {
     std::println("{}c({:4}, {:4}) deleted because src did not exist",
-                 core::debug_prefix(), cx, cz);
+                 core::debug_prefix(config_->color_mode), cx, cz);
   }
 }
 
@@ -128,8 +131,9 @@ void ChunkProcessor::replace_chunk(const i32 cx,
 
     // no need to update location table
 
-    if (verbose_) {
-      std::println("{}c({:4}, {:4}) overwritten", core::debug_prefix(), cx, cz);
+    if (config_->verbose) {
+      std::println("{}c({:4}, {:4}) overwritten",
+                   core::debug_prefix(config_->color_mode), cx, cz);
     }
   } else {
     // relocation
@@ -157,8 +161,9 @@ void ChunkProcessor::replace_chunk(const i32 cx,
     update_location_table(static_cast<size_t>(index), src_loc.sectors,
                           new_offset);
 
-    if (verbose_) {
-      std::println("{}c({:4}, {:4}) relocated", core::debug_prefix(), cx, cz);
+    if (config_->verbose) {
+      std::println("{}c({:4}, {:4}) relocated",
+                   core::debug_prefix(config_->color_mode), cx, cz);
     }
   }
 

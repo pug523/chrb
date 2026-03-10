@@ -7,8 +7,8 @@
 #include "app/args/parser.h"
 #include "region/rollback_config.h"
 
-namespace core {
+namespace app {
 
 ArgParser build_arg_parser(region::RollbackConfig* config);
 
-}  // namespace core
+}  // namespace app

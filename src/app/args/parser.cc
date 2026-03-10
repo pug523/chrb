@@ -17,7 +17,7 @@
 #include "core/cli/style_util.h"
 #include "core/core.h"
 
-namespace core {
+namespace app {
 
 ArgParser::ArgParser(std::string_view program_name,
                      std::string_view version,
@@ -59,7 +59,8 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
     const std::optional<size_t> idx = find_index(key);
 
     if (!idx.has_value()) {
-      std::println(stderr, "{}unknown argument: '{}'", error_prefix(), key);
+      std::println(stderr, "{}unknown argument: '{}'",
+                   error_prefix(core::ColorMode::Never), key);
       result = ParseResult::UnknownArgument;
       continue;
     }
@@ -75,8 +76,8 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
         // --key value form
         value = argv[++i];
       } else {
-        std::println(stderr, "{}argument '{}' requires a value", error_prefix(),
-                     key);
+        std::println(stderr, "{}argument '{}' requires a value",
+                     error_prefix(core::ColorMode::Never), key);
         result = ParseResult::MissingValue;
         continue;
       }
@@ -88,7 +89,7 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
       // flag: --key=anything is an error
       if (eq_pos != std::string_view::npos) {
         std::println(stderr, "{}argument '{}' does not take a value",
-                     error_prefix(), key);
+                     error_prefix(core::ColorMode::Never), key);
         continue;
       }
 
@@ -117,7 +118,7 @@ bool ArgParser::validate_required() const {
   for (size_t i = 0; i < defs_.size(); ++i) {
     if (defs_[i].required && !matched_[i]) {
       std::println(stderr, "{}required argument '{}' not provided",
-                   error_prefix(), defs_[i].long_name);
+                   error_prefix(core::ColorMode::Never), defs_[i].long_name);
       ok = false;
     }
   }
@@ -126,33 +127,34 @@ bool ArgParser::validate_required() const {
 
 void ArgParser::print_usage(const bool color) const {
   if (color) {
-    std::print("{}{}Usage: {}{}{} {}[Options]\n\n", kBold, kBrightWhite, kGreen,
-               program_name_, kReset, kMagenta);
+    std::print("{}{}Usage: {}{}{} {}[Options]\n\n", core::kBold,
+               core::kBrightWhite, core::kGreen, program_name_, core::kReset,
+               core::kMagenta);
   } else {
     std::print("Usage: {} [Options]\n\n", program_name_);
   }
 }
 
 void ArgParser::print_help() const {
-  const bool color = can_use_ansi_escape_sequence(Stream::Stdout);
+  const bool color = can_use_ansi_escape_sequence(core::Stream::Stdout);
 
   // header
   if (color) {
-    std::print("{}{}", kBold, kRed);
+    std::print("{}{}", core::kBold, core::kRed);
   }
   std::print("                     {}\n\n", program_name_);
   if (color) {
-    std::print("{}", kReset);
+    std::print("{}", core::kReset);
   }
 
   // tagline
   if (!tagline_.empty()) {
     if (color) {
-      std::print("{}{}", kBold, kBrightYellow);
+      std::print("{}{}", core::kBold, core::kBrightYellow);
     }
     std::print("  {}\n\n", tagline_);
     if (color) {
-      std::print("{}", kReset);
+      std::print("{}", core::kReset);
     }
   }
 
@@ -161,11 +163,11 @@ void ArgParser::print_help() const {
 
   // options table header
   if (color) {
-    std::print("{}{}", kBold, kBrightWhite);
+    std::print("{}{}", core::kBold, core::kBrightWhite);
   }
   std::println("Options:");
   if (color) {
-    std::print("{}", kReset);
+    std::print("{}", core::kReset);
   }
 
   for (const auto& d : defs_) {
@@ -173,7 +175,7 @@ void ArgParser::print_help() const {
     left.append("  ");
 
     if (color) {
-      left.append(kReset).append(kBold).append(kCyan);
+      left.append(core::kReset).append(core::kBold).append(core::kCyan);
     }
 
     if (!d.short_name.empty()) {
@@ -187,7 +189,7 @@ void ArgParser::print_help() const {
     }
 
     if (color) {
-      left.append(kReset);
+      left.append(core::kReset);
     }
 
     // padding
@@ -198,8 +200,8 @@ void ArgParser::print_help() const {
 
     const std::string_view req = d.required ? " [required]" : " [optional]";
     if (color) {
-      std::println("{}{}{}{}{}{}{}", left, kBold, kBrightWhite, d.description,
-                   kDim, req, kReset);
+      std::println("{}{}{}{}{}{}{}", left, core::kBold, core::kBrightWhite,
+                   d.description, core::kDim, req, core::kReset);
     } else {
       std::println("{}{}{}", left, d.description, req);
     }
@@ -208,13 +210,14 @@ void ArgParser::print_help() const {
 }
 
 void ArgParser::print_version() const {
-  const bool color = can_use_ansi_escape_sequence(Stream::Stdout);
+  const bool color = can_use_ansi_escape_sequence(core::Stream::Stdout);
   if (color) {
-    std::println("{}{}{}{}{}  version: {}{}", kReset, kBold, kRed,
-                 program_name_, kYellow, version_, kReset);
+    std::println("{}{}{}{}{}  version: {}{}", core::kReset, core::kBold,
+                 core::kRed, program_name_, core::kYellow, version_,
+                 core::kReset);
   } else {
     std::println("{}  version: {}", program_name_, version_);
   }
 }
 
-}  // namespace core
+}  // namespace app

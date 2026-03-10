@@ -12,7 +12,7 @@
 
 #include "core/core.h"
 
-namespace core {
+namespace app {
 
 struct ArgDef {
   std::string_view long_name;   // e.g. "--src"
@@ -68,4 +68,4 @@ class ArgParser {
   std::vector<bool> matched_;
 };
 
-}  // namespace core
+}  // namespace app

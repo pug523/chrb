@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
 #include "region/location.h"
+#include "region/rollback_config.h"
 
 namespace region {
 
@@ -27,7 +28,7 @@ class ChunkProcessor {
             i32 rz,
             core::MappedFile* src,
             core::MappedFile* dest,
-            bool verbose);
+            RollbackConfig* config);
 
   // TODO: error handling is maybe needed?
   void process(i32 cx, i32 cz);
@@ -53,7 +54,7 @@ class ChunkProcessor {
   i32 rz_;
   core::MappedFile* src_ = nullptr;
   core::MappedFile* dest_ = nullptr;
-  bool verbose_ = false;
+  RollbackConfig* config_ = nullptr;
 };
 
 }  // namespace region

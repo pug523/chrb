@@ -81,20 +81,14 @@ jobs:
       - name: package artifact
         shell: bash
         run: |
-          # mkdir -p dist
-          # cp LICENSE README.md dist/ 2>/dev/null || true
-          # if [[ "${{ matrix.plat }}" == "windows" ]]; then
-          #   cp out/*/chrb.exe dist/
-          #   cd dist && 7z a ../chrb-${{ matrix.suffix }}.zip *
-          # else
-          #   cp out/*/chrb dist/
-          #   cd dist && tar -czvf ../chrb-${{ matrix.suffix }}.tar.gz *
-          # fi
+          mkdir -p dist
+          cp LICENSE README.md dist/ 2>/dev/null || true
           if [[ "${{ matrix.plat }}" == "windows" ]]; then
-            cp out/*/chrb.exe ./chrb-${{matrix.suffix}}.exe
+            cp out/*/chrb.exe dist/
+            cd dist && 7z a ../chrb-${{ matrix.suffix }}.zip *
           else
-            cp out/*/chrb ./chrb-${{ matrix.suffix }}
-            chmod +x ./chrb-${{ matrix.suffix }}
+            cp out/*/chrb dist/
+            cd dist && tar -czvf ../chrb-${{ matrix.suffix }}.tar.gz *
           fi
 
       - name: upload artifact to release

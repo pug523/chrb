@@ -177,6 +177,16 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
+      .long_name = "--silent",
+      .short_name = "-s",
+      .meta = "",
+      .description = "disable information logging",
+      .takes_value = false,
+      .required = false,
+      .on_match = [config](std::string_view) { config->silent = true; },
+  });
+
+  p.add({
       .long_name = "--verbose",
       .short_name = "-V",
       .meta = "",

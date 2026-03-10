@@ -27,6 +27,7 @@ struct RollbackConfig {
   Dimension dimension = Dimension::Unknown;
   RollbackType type = RollbackType::Unknown;
   bool bulk_copy = false;
+  bool silent = false;
   bool verbose = false;
 };
 

@@ -39,7 +39,9 @@ void RollbackExecutor::init(RollbackConfig&& config) {
 void RollbackExecutor::start() {
   dcheck(config_.num_threads > 0);
 
-  std::println("{}starting rollback...", core::info_prefix());
+  if (!config_.silent) {
+    std::println("{}starting rollback...", core::info_prefix());
+  }
 
   start_time_ = std::chrono::steady_clock::now();
 
@@ -61,8 +63,11 @@ void RollbackExecutor::start() {
       schedule(config_.dimension, RollbackType::Poi);
     }
   }
-  std::println("{}scheduled {} regions", core::info_prefix(),
-               region_queue_.size());
+
+  if (!config_.silent) {
+    std::println("{}scheduled {} regions", core::info_prefix(),
+                 region_queue_.size());
+  }
 
 #ifdef IS_PLAT_LINUX
   if (config_.bulk_copy) {
@@ -91,16 +96,18 @@ void RollbackExecutor::flush() {
   }
   workers_.clear();
 
-  namespace ch = std::chrono;
-  const auto elapsed = ch::steady_clock::now() - start_time_;
-  if (elapsed < ch::seconds(1)) {
-    std::println("{}rollback completed in: {}ms", core::info_prefix(),
-                 ch::duration_cast<ch::milliseconds>(elapsed).count());
-  } else {
-    const auto s = ch::duration_cast<ch::seconds>(elapsed);
-    const auto ms = ch::duration_cast<ch::milliseconds>(elapsed - s);
-    std::println("{}rollback completed in: {}.{}s", core::info_prefix(),
-                 s.count(), ms.count());
+  if (!config_.silent) {
+    namespace ch = std::chrono;
+    const auto elapsed = ch::steady_clock::now() - start_time_;
+    if (elapsed < ch::seconds(1)) {
+      std::println("{}rollback completed in: {}ms", core::info_prefix(),
+                   ch::duration_cast<ch::milliseconds>(elapsed).count());
+    } else {
+      const auto s = ch::duration_cast<ch::seconds>(elapsed);
+      const auto ms = ch::duration_cast<ch::milliseconds>(elapsed - s);
+      std::println("{}rollback completed in: {}.{}s", core::info_prefix(),
+                   s.count(), ms.count());
+    }
   }
 }
 
@@ -273,8 +280,10 @@ void RollbackExecutor::run_full_copy_batch() {
     return;
   }
 
-  std::println("{}bulk-copying {} full region(s)...", core::info_prefix(),
-               srcs.size());
+  if (!config_.silent) {
+    std::println("{}bulk-copying {} full region(s)...", core::info_prefix(),
+                 srcs.size());
+  }
 
   const auto on_success = [&](size_t ci) {
     successfull_region_count_.fetch_add(1);

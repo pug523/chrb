@@ -72,6 +72,7 @@ verbose = {}
   }
 
   region::RollbackExecutor executor;
+  const bool silent = config.silent;
   executor.init(std::move(config));
 
   executor.start();
@@ -82,15 +83,18 @@ verbose = {}
   const u64 failed_region_count = executor.failed_region_count();
   const u64 failed_chunk_count = executor.failed_chunk_count();
 
+  if (!silent) {
+    if (successfull_region_count > 0) {
+      std::println("{}{:5} full regions processed successfully",
+                   core::info_prefix(), successfull_region_count);
+    }
+    if (successfull_chunk_count > 0) {
+      std::println("{}{:5} chunks processed successfully", core::info_prefix(),
+                   successfull_chunk_count);
+    }
+  }
+
   i32 result = 0;
-  if (successfull_region_count > 0) {
-    std::println("{}{:5} full regions processed successfully",
-                 core::info_prefix(), successfull_region_count);
-  }
-  if (successfull_chunk_count > 0) {
-    std::println("{}{:5} chunks processed successfully", core::info_prefix(),
-                 successfull_chunk_count);
-  }
   if (failed_region_count > 0) {
     std::string failed_regions_string = "";
     for (const auto& r : executor.failed_regions()) {

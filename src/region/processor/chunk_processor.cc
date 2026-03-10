@@ -38,108 +38,131 @@ void ChunkProcessor::init(i32 rx,
 
 void ChunkProcessor::process(i32 cx, i32 cz) {
   const i32 index = chunk_index(cx, cz);
-
   const LocationEntry src_loc = read_location(*src_, index);
   const LocationEntry dest_loc = read_location(*dest_, index);
 
-  if (src_loc.offset == 0 && dest_loc.offset == 0) {
-    // src and dest do not exist: chunk missing
-    if (verbose_) {
-      std::println(
-          "{}c({:4}, {:4}) ignored because both src and dest data did not "
-          "exist",
-          core::debug_prefix(), cx, cz);
-    }
-    return;
-  } else if (src_loc.offset == 0 && dest_loc.offset != 0) {
-    // src does not exist and dest exists: delete the chunk
-    constexpr const u8 kZero[4] = {0, 0, 0, 0};
-    dest_->write(static_cast<size_t>(index) * 4, kZero, 4);
-    if (verbose_) {
-      std::println("{}c({:4}, {:4}) deleted because src did not exist",
-                   core::debug_prefix(), cx, cz);
-    }
-    return;
-  } else if (src_loc.offset != 0 && dest_loc.offset == 0) {
-    const size_t bytes = src_loc.sectors * core::kSectorSize;
-    std::vector<char> buffer(bytes);
-    src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
+  const bool src_exists = src_loc.offset != 0;
+  const bool dest_exists = dest_loc.offset != 0;
+
+  enum class Task : u8 {
+    Ignore = 0b00,
+    Add = 0b01,
+    Delete = 0b10,
+    Replace = 0b11,
+  };
+
+  const Task task = static_cast<Task>(u8(dest_exists << 1 | src_exists));
+
+  switch (task) {
+    case Task::Ignore: ignore_chunk(cx, cz); break;
+    case Task::Add: add_chunk(cx, cz, index, src_loc); break;
+    case Task::Delete: delete_chunk(cx, cz, index); break;
+    case Task::Replace: replace_chunk(cx, cz, index, src_loc, dest_loc); break;
+    default: dcheck(false); break;
+  }
+}
+
+void ChunkProcessor::ignore_chunk(const i32 cx, const i32 cz) {
+  // src and dest do not exist: chunk missing
+  if (verbose_) {
+    std::println(
+        "{}c({:4}, {:4}) ignored because both src and dest data did not "
+        "exist",
+        core::debug_prefix(), cx, cz);
+  }
+}
+
+void ChunkProcessor::add_chunk(const i32 cx,
+                               const i32 cz,
+                               const i32 index,
+                               const LocationEntry src_loc) {
+  const size_t bytes = src_loc.sectors * core::kSectorSize;
+  std::vector<char> buffer(bytes);
+  src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
+             buffer.data(), bytes);
+
+  const std::vector<bool> used = build_sector_map(*dest_);
+  i32 new_offset = find_free_sector(used, src_loc.sectors);
+
+  if (new_offset < 0) {
+    new_offset = static_cast<i32>(dest_->size() / core::kSectorSize);
+    dest_->resize(dest_->size() + bytes);
+  }
+
+  dest_->write(static_cast<size_t>(new_offset) * core::kSectorSize,
                buffer.data(), bytes);
 
-    const std::vector<bool> used = build_sector_map(*dest_);
+  update_location_table(static_cast<size_t>(index), src_loc.sectors,
+                        new_offset);
+  update_timestamp(static_cast<size_t>(index));
+
+  if (verbose_) {
+    std::println("{}c({:4}, {:4}) added", core::debug_prefix(), cx, cz);
+  }
+}
+
+void ChunkProcessor::delete_chunk(const i32 cx, const i32 cz, const i32 index) {
+  // src does not exist and dest exists: delete the chunk
+  constexpr const u8 kZero[4] = {0, 0, 0, 0};
+  dest_->write(static_cast<size_t>(index) * 4, kZero, 4);
+  if (verbose_) {
+    std::println("{}c({:4}, {:4}) deleted because src did not exist",
+                 core::debug_prefix(), cx, cz);
+  }
+}
+
+void ChunkProcessor::replace_chunk(const i32 cx,
+                                   const i32 cz,
+                                   const i32 index,
+                                   const LocationEntry src_loc,
+                                   const LocationEntry dest_loc) {
+  const size_t src_bytes = src_loc.sectors * core::kSectorSize;
+  std::vector<u8> buffer(src_bytes);
+  src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
+             buffer.data(), src_bytes);
+
+  if (src_loc.sectors <= dest_loc.sectors) [[likely]] {
+    // can be overwritten as is
+    dest_->write(static_cast<size_t>(dest_loc.offset) * core::kSectorSize,
+                 buffer.data(), src_bytes);
+
+    // no need to update location table
+
+    if (verbose_) {
+      std::println("{}c({:4}, {:4}) overwritten", core::debug_prefix(), cx, cz);
+    }
+  } else {
+    // relocation
+    std::vector<bool> used = build_sector_map(*dest_);
+
+    // free old sectors
+    for (u8 s = 0; s < dest_loc.sectors; ++s) {
+      const size_t sector_index = static_cast<size_t>(dest_loc.offset) + s;
+      if (sector_index < used.size()) {
+        used[sector_index] = false;
+      }
+    }
+
     i32 new_offset = find_free_sector(used, src_loc.sectors);
 
     if (new_offset < 0) {
       new_offset = static_cast<i32>(dest_->size() / core::kSectorSize);
-      dest_->resize(dest_->size() + bytes);
+      dest_->resize(dest_->size() + src_bytes);
     }
 
+    // write to new location
     dest_->write(static_cast<size_t>(new_offset) * core::kSectorSize,
-                 buffer.data(), bytes);
+                 buffer.data(), src_bytes);
 
     update_location_table(static_cast<size_t>(index), src_loc.sectors,
                           new_offset);
-    update_timestamp(static_cast<size_t>(index));
 
     if (verbose_) {
-      std::println("{}c({:4}, {:4}) added", core::debug_prefix(), cx, cz);
+      std::println("{}c({:4}, {:4}) relocated", core::debug_prefix(), cx, cz);
     }
-    return;
-  } else if (src_loc.offset != 0 && dest_loc.offset != 0) {
-    const size_t src_bytes = src_loc.sectors * core::kSectorSize;
-    std::vector<u8> buffer(src_bytes);
-    src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
-               buffer.data(), src_bytes);
-
-    if (src_loc.sectors <= dest_loc.sectors) [[likely]] {
-      // can be overwritten as is
-      dest_->write(static_cast<size_t>(dest_loc.offset) * core::kSectorSize,
-                   buffer.data(), src_bytes);
-
-      // no need to update location table
-
-      if (verbose_) {
-        std::println("{}c({:4}, {:4}) overwritten", core::debug_prefix(), cx,
-                     cz);
-      }
-    } else {
-      // relocation
-      std::vector<bool> used = build_sector_map(*dest_);
-
-      // free old sectors
-      for (u8 s = 0; s < dest_loc.sectors; ++s) {
-        const size_t sector_index = static_cast<size_t>(dest_loc.offset) + s;
-        if (sector_index < used.size()) {
-          used[sector_index] = false;
-        }
-      }
-
-      i32 new_offset = find_free_sector(used, src_loc.sectors);
-
-      if (new_offset < 0) {
-        new_offset = static_cast<i32>(dest_->size() / core::kSectorSize);
-        dest_->resize(dest_->size() + src_bytes);
-      }
-
-      // write to new location
-      dest_->write(static_cast<size_t>(new_offset) * core::kSectorSize,
-                   buffer.data(), src_bytes);
-
-      update_location_table(static_cast<size_t>(index), src_loc.sectors,
-                            new_offset);
-
-      if (verbose_) {
-        std::println("{}c({:4}, {:4}) relocated", core::debug_prefix(), cx, cz);
-      }
-    }
-
-    update_timestamp(static_cast<size_t>(index));
-    return;
-  } else {
-    // unreachable
-    dcheck(false);
-    return;
   }
+
+  update_timestamp(static_cast<size_t>(index));
 }
 
 inline i32 ChunkProcessor::chunk_index(i32 chunk_x, i32 chunk_z) {

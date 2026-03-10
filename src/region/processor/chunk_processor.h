@@ -8,6 +8,7 @@
 
 #include "core/core.h"
 #include "core/mem/mapped_file.h"
+#include "region/location.h"
 
 namespace region {
 
@@ -32,6 +33,18 @@ class ChunkProcessor {
   void process(i32 cx, i32 cz);
 
  private:
+  void ignore_chunk(const i32 cx, const i32 cz);
+  void add_chunk(const i32 cx,
+                 const i32 cz,
+                 const i32 index,
+                 const LocationEntry src_loc);
+  void delete_chunk(const i32 cx, const i32 cz, const i32 index);
+  void replace_chunk(const i32 cx,
+                     const i32 cz,
+                     const i32 index,
+                     const LocationEntry src_loc,
+                     const LocationEntry dest_loc);
+
   i32 chunk_index(i32 chunk_x, i32 chunk_z);
   void update_location_table(size_t index, u8 sectors, i32 new_offset);
   void update_timestamp(size_t index);

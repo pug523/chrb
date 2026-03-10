@@ -76,7 +76,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .long_name = "--dim",
       .short_name = "-D",
       .meta = "<overworld|nether|end>",
-      .description = "target dimension",
+      .description = "target dimension (default: overworld)",
       .takes_value = true,
       .required = false,
       .on_match = [config](std::string_view v) { config->dim_str = v; },
@@ -166,7 +166,8 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .long_name = "--num_threads",
       .short_name = "-j",
       .meta = "<n>",
-      .description = "number of worker threads",
+      .description = "number of worker threads (default: half of num threads "
+                     "on your hardware)",
       .takes_value = true,
       .required = false,
       .on_match =
@@ -189,7 +190,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
 
   p.add({
       .long_name = "--silent",
-      .short_name = "-s",
+      .short_name = "-S",
       .meta = "",
       .description = "disable information logging",
       .takes_value = false,

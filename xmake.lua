@@ -8,6 +8,7 @@ set_version(project_version)
 
 set_policy("build.ccache", true)
 set_policy("check.auto_ignore_flags", false)
+set_policy("build.progress_style", "multirow")
 
 option("coverage", {default = false, description = "use llvm-cov for analyzing test coverage"})
 option("xray", {default = false, description = "use llvm-xray for determining performance bottleneck"})

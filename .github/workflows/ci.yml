@@ -57,7 +57,7 @@ jobs:
         shell: bash
 
       - name: setup xmake
-        uses: xmake-io/github-action-setup-xmake@cc0f56c35b75d0975ed5d9e29005fae707721cd5
+        uses: xmake-io/github-action-setup-xmake@3a1a5dddfc7fa625d9a698738334bf55655a861a
         with:
           # https://github.com/xmake-io/xmake/tags
           xmake-version: "3.0.7"

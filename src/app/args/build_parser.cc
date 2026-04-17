@@ -106,20 +106,26 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .long_name = "--src_world_structure",
       .short_name = "-w",
       .meta = "<auto|old|new>",
-      .description = "directory structure of source world. (old: DIM-1/, new: nether/) (default: auto)",
+      .description = "directory structure of source world. (old: DIM-1/, new: "
+                     "nether/) (default: auto)",
       .takes_value = true,
       .required = false,
-      .on_match = [config](std::string_view v) { config->src_world_structure_str = v; },
+      .on_match =
+          [config](std::string_view v) { config->src_world_structure_str = v; },
   });
 
   p.add({
       .long_name = "--dest_world_structure",
       .short_name = "-W",
       .meta = "<auto|old|new>",
-      .description = "directory structure of dest world. (old: DIM-1/, new: nether/) (default: auto)",
+      .description = "directory structure of dest world. (old: DIM-1/, new: "
+                     "nether/) (default: auto)",
       .takes_value = true,
       .required = false,
-      .on_match = [config](std::string_view v) { config->dest_world_structure_str = v; },
+      .on_match =
+          [config](std::string_view v) {
+            config->dest_world_structure_str = v;
+          },
   });
 
   p.add({

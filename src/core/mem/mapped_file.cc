@@ -13,7 +13,7 @@
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
 #include <windows.h>
 #else
 #include <fcntl.h>
@@ -28,7 +28,7 @@ bool MappedFile::open(std::string_view path, size_t min_size) {
   close();
   path_ = path;
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   file_handle_ =
       CreateFileA(path_.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
                   nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -122,7 +122,7 @@ void MappedFile::close() {
   if (!data_) {
     return;
   }
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   UnmapViewOfFile(data_);
   CloseHandle(mapping_handle_);
   CloseHandle(file_handle_);
@@ -138,7 +138,7 @@ bool MappedFile::resize(size_t new_size) {
     return false;
   }
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   UnmapViewOfFile(data_);
   data_ = nullptr;
   CloseHandle(mapping_handle_);

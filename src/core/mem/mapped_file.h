@@ -30,12 +30,12 @@ class MappedFile {
   bool resize(size_t new_size);
 
   inline void read(size_t offset, void* dest, size_t len) const {
-    dcheck(offset + len <= size_);
+    DCHECK(offset + len <= size_);
     std::memcpy(dest, data_ + offset, len);
   }
 
   inline void write(size_t offset, const void* src, size_t len) {
-    dcheck(offset + len <= size_);
+    DCHECK(offset + len <= size_);
     std::memcpy(data_ + offset, src, len);
   }
 
@@ -48,7 +48,7 @@ class MappedFile {
   size_t size_ = 0;
   std::string path_;
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   // INVALID_HANDLE_VALUE
   void* file_handle_ = reinterpret_cast<void*>(-1);  // NOLINT
   void* mapping_handle_ = nullptr;

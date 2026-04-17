@@ -25,7 +25,7 @@ ArgParser::ArgParser(std::string_view program_name,
     : program_name_(program_name), version_(version), tagline_(tagline) {}
 
 void ArgParser::add(ArgDef def) {
-  dcheck(!(def.required && !def.takes_value));
+  DCHECK(!(def.required && !def.takes_value));
   defs_.push_back(std::move(def));
   matched_.push_back(false);
 }
@@ -198,7 +198,7 @@ void ArgParser::print_help() const {
       left.append(pad - left.size(), ' ');
     }
 
-    const std::string_view req = d.required ? " [required]" : " [optional]";
+    const std::string_view req = d.required ? " [required]" : "";
     if (color) {
       std::println("{}{}{}{}{}{}{}", left, core::kBold, core::kBrightWhite,
                    d.description, core::kDim, req, core::kReset);

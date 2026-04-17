@@ -32,8 +32,10 @@ struct RollbackConfig {
   Dimension dimension = Dimension::OverWorld;
   RollbackType type = RollbackType::All;
   core::ColorMode color_mode = core::ColorMode::Auto;
-  WorldDirectoryStructureConfig src_world_structure = WorldDirectoryStructureConfig::Auto;
-  WorldDirectoryStructureConfig dest_world_structure = WorldDirectoryStructureConfig::Auto;
+  WorldDirectoryStructureConfig src_world_structure =
+      WorldDirectoryStructureConfig::Auto;
+  WorldDirectoryStructureConfig dest_world_structure =
+      WorldDirectoryStructureConfig::Auto;
   bool bulk_copy = false;
   bool silent = false;
   bool verbose = false;

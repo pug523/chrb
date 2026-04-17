@@ -96,7 +96,7 @@ std::string_view log_prefix(ColorMode mode, LogLevel level) {
     }
     default: {
       // unreachable
-      dcheck(false);
+      DCHECK(false);
       return "";
     }
   }

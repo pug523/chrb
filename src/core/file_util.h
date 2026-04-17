@@ -8,6 +8,7 @@
 #include <string_view>
 #include <vector>
 
+#include "build/build_config.h"
 #include "core/core.h"
 
 namespace core {
@@ -20,16 +21,24 @@ bool rename_file(const std::string_view from, const std::string_view to);
 i64 count_files(const std::string_view dir);
 std::vector<std::string> list_files(const std::string_view dir);
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 std::vector<u64> async_copy_files(const std::vector<std::string>& srcs,
                                   const std::vector<std::string>& dests,
                                   u32 queue_depth);
 #endif
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
 #define PATH_DELIMITER '\\'
 #else
 #define PATH_DELIMITER '/'
 #endif
+
+inline bool is_path_delimiter(char c) {
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
+  return c == '/' || c == '\\';
+#else
+  return c == '/';
+#endif
+}
 
 }  // namespace core

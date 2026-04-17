@@ -14,6 +14,7 @@
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/file_util.h"
+#include "region/path_util.h"
 #include "region/rollback_config.h"
 #include "region/rollback_executor.h"
 
@@ -29,10 +30,10 @@ i32 rollback(i32 argc, char** argv) {
     return static_cast<i32>(arg_result);
   }
 
-  if (config.src_world.back() != '/' && config.src_world.back() != '\\') {
+  if (!core::is_path_delimiter(config.src_world.back())) {
     config.src_world.push_back(PATH_DELIMITER);
   }
-  if (config.dest_world.back() != '/' && config.src_world.back() != '\\') {
+  if (!core::is_path_delimiter(config.dest_world.back())) {
     config.dest_world.push_back(PATH_DELIMITER);
   }
 
@@ -60,6 +61,9 @@ src_world = {}
 dest_world = {}
 dim_str = {}
 type_str = {}
+color_str = {}
+src_world_structure_str = {}
+dest_world_structure_str = {}
 min_x = {}
 max_x = {}
 min_z = {}
@@ -69,8 +73,10 @@ verbose = {}
 
 )",
                config.src_world, config.dest_world, config.dim_str,
-               config.type_str, *config.min_x, *config.max_x, *config.min_z,
-               *config.max_z, config.num_threads, config.verbose);
+               config.type_str, config.color_str,
+               config.src_world_structure_str, config.dest_world_structure_str,
+               *config.min_x, *config.max_x, *config.min_z, *config.max_z,
+               config.num_threads, config.verbose);
   }
 
   region::RollbackExecutor executor;

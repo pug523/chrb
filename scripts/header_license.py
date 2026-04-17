@@ -4,51 +4,49 @@
 # This source code is licensed under the Apache License, Version 2.0
 # which can be found in the LICENSE file.
 
-import os
+import re
+from datetime import datetime
+from pathlib import Path
 
-header_license = """// Copyright 2026 pugur
+HOLDER = "pugur"
+LICENSE_TEXT = f"""// Copyright {datetime.now().year} {HOLDER}
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
-
 """
 
-source_extensions = (".c", ".cc", ".h")
+SOURCE_EXTENSIONS = {".c", ".cc", ".h"}
+
+COPYRIGHT_RE = re.compile(r"//\s*Copyright\s+\d{4}\s+" + re.escape(HOLDER))
 
 
-def write_license_header_if_needed(file_path: str):
-    if not os.path.isfile(file_path):
-        print(f"file not found: {file_path}")
-        return
+def apply_license(file_path: Path):
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
+        content = file_path.read_text(encoding="utf-8")
 
-        if not content.startswith(header_license):
-            print(f"applying license to: {file_path}")
-            with open(file_path, "w", encoding="utf-8") as w:
-                w.write(header_license + content)
+        if COPYRIGHT_RE.search(content):
+            return
+        else:
+            print(f"Applying license to: {file_path}")
+            new_content = LICENSE_TEXT + "\n" + content
+
+        file_path.write_text(new_content.lstrip(), encoding="utf-8")
+
     except Exception as e:
-        print(f"error processing {file_path}: {e}")
-
-
-def apply_directory(dir: str):
-    if not os.path.isdir(dir):
-        print(f"directory not found: {dir}")
-        return
-    for root, _, files in os.walk(dir):
-        for file in files:
-            if file.endswith(source_extensions):
-                file_path = os.path.join(root, file)
-                write_license_header_if_needed(file_path)
+        print(f"Error processing {file_path}: {e}")
 
 
 def main():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    src_dir = os.path.join(script_dir, "..", "src")
-    apply_directory(src_dir)
+    base_dir = Path(__file__).resolve().parent.parent
+    target_dirs = [base_dir / "src", base_dir / "tests", base_dir / "benchmarks"]
 
-    tests_dir = os.path.join(script_dir, "..", "tests")
-    apply_directory(tests_dir)
+    for target in target_dirs:
+        if not target.is_dir():
+            print(f"Directory not found: {target}")
+            continue
+
+        for file_path in target.rglob("*"):
+            if file_path.suffix in SOURCE_EXTENSIONS:
+                apply_license(file_path)
 
 
 if __name__ == "__main__":

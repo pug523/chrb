@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <string_view>
 
+#include "core/check.h"
 #include "core/cli/console.h"
 #include "core/cli/style_util.h"
 

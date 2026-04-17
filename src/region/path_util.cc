@@ -4,9 +4,16 @@
 
 #include "region/path_util.h"
 
+#include <cstddef>
+#include <format>
+#include <string>
+#include <string_view>
+
 #include "core/check.h"
+#include "core/core.h"
 #include "core/file_util.h"
 #include "region/dimension.h"
+#include "region/region_position.h"
 #include "region/rollback_type.h"
 #include "region/world_directory_structure.h"
 

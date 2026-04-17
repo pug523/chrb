@@ -64,7 +64,7 @@ inline bool exists_as(const std::string_view path, u32 mask) {
 
 #if CHRB_BUILD_FLAG(IS_OS_LINUX)
 // define linux_dirent64 manually as it is not in glibc headers
-struct linux_dirent64 {
+struct LinuxDirent64 {
   u64 d_ino;
   i64 d_off;
   u16 d_reclen;
@@ -81,7 +81,7 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
     return 0;
   }
 
-  alignas(linux_dirent64) char buf[16384];
+  alignas(LinuxDirent64) char buf[16384];
   while (true) {
     const i64 nread = syscall(SYS_getdents64, fd, buf, sizeof(buf));
     if (nread <= 0) {
@@ -89,7 +89,7 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
     }
 
     for (i64 bpos = 0; bpos < nread;) {
-      const linux_dirent64* d = reinterpret_cast<linux_dirent64*>(buf + bpos);
+      const LinuxDirent64* d = reinterpret_cast<LinuxDirent64*>(buf + bpos);
       const char* name = d->d_name;
 
       if (name[0] == '.' &&

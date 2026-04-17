@@ -22,7 +22,6 @@
 #include "region/rollback_config.h"
 #include "region/rollback_task.h"
 #include "region/rollback_type.h"
-#include "region/world_directory_structure.h"
 
 namespace region {
 

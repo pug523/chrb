@@ -14,7 +14,6 @@
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/file_util.h"
-#include "region/path_util.h"
 #include "region/rollback_config.h"
 #include "region/rollback_executor.h"
 

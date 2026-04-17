@@ -5,7 +5,9 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
+#include "core/core.h"
 #include "region/dimension.h"
 #include "region/region_position.h"
 #include "region/rollback_type.h"

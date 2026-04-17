@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
 #include <print>
 #include <vector>
 
@@ -53,7 +54,8 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
     Replace = 0b11,
   };
 
-  const Task task = static_cast<Task>(u8(dest_exists << 1 | src_exists));
+  const Task task =
+      static_cast<Task>(static_cast<u8>(dest_exists << 1 | src_exists));
 
   switch (task) {
     case Task::Ignore: ignore_chunk(cx, cz); break;

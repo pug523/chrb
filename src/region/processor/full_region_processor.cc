@@ -12,21 +12,24 @@
 #include <string>
 #include <string_view>
 
+#include "build/build_config.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/file_util.h"
 #include "core/mem/mapped_file.h"
 #include "region/rollback_config.h"
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
 #include <windows.h>
-#else
+#elif CHRB_BUILD_FLAG(IS_OS_POSIX)
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#else
+#error "Unsupported platform"
 #endif
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
 #include <functional>
 #include <vector>
 
@@ -37,17 +40,17 @@ namespace region {
 
 void FullRegionProcessor::init(RollbackConfig* config) {
   config_ = config;
-  dcheck(config_);
+  DCHECK(config_);
 }
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 size_t FullRegionProcessor::process_batch(
     const std::vector<std::string>& srcs,
     const std::vector<std::string>& dsts,
     u32 queue_depth,
     const std::function<void(size_t)>& success_cb,
     const std::function<void(size_t)>& failure_cb) {
-  dcheck(srcs.size() == dsts.size());
+  DCHECK(srcs.size() == dsts.size());
 
   if (srcs.empty()) {
     return 0;
@@ -87,7 +90,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
   tmp.append(".tmp");
 
   {
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
     void* fh =
         CreateFileA(tmp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
                     CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -97,7 +100,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
       return false;
     }
     CloseHandle(fh);
-#else
+#elif CHRB_BUILD_FLAG(IS_OS_POSIX)
     const i32 fd = ::open(tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
     if (fd < 0) [[unlikely]] {
       std::println(stderr, "{}failed to create tmp: {} (in {},{})",
@@ -121,14 +124,14 @@ bool FullRegionProcessor::process_one(const i32 rx,
     return false;
   }
 
-#ifndef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_POSIX)
   madvise(src_map.data(), file_size, MADV_SEQUENTIAL);
   madvise(tmp_map.data(), file_size, MADV_SEQUENTIAL);
 #endif
 
   std::memcpy(tmp_map.data(), src_map.data(), file_size);
 
-#ifndef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_POSIX)
   // flush explicitly before renaming for clush tolerance
   msync(tmp_map.data(), file_size, MS_SYNC);
 #endif

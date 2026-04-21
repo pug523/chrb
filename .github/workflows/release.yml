@@ -1,5 +1,7 @@
 name: release
 
+run-name: Auto release for ${{ github.ref_name }}
+
 permissions:
   contents: write
 

@@ -58,4 +58,13 @@ inline const char* dimension_path_with_slash_new(Dimension d) {
   }
 }
 
+inline const char* dimension_path_with_slash_paper(Dimension d) {
+  switch (d) {
+    case Dimension::OverWorld: return "world/";
+    case Dimension::Nether: return "world_nether/DIM-1/";
+    case Dimension::End: return "world_the_end/DIM1/";
+    default: DCHECK(false); return "unknown";
+  }
+}
+
 }  // namespace region

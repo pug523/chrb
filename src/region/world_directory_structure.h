@@ -15,12 +15,14 @@ enum class WorldDirectoryStructureConfig : u8 {
   Auto,
   Old,
   New,
+  Paper,
 };
 
 enum class WorldDirectoryStructure : u8 {
   Unknown,
   Old,
   New,
+  Paper,
 };
 
 inline WorldDirectoryStructureConfig str_to_world_dir_structure(
@@ -32,6 +34,8 @@ inline WorldDirectoryStructureConfig str_to_world_dir_structure(
     return WorldDirectoryStructureConfig::Old;
   } else if (s == "new") {
     return WorldDirectoryStructureConfig::New;
+  } else if (s == "paper") {
+    return WorldDirectoryStructureConfig::Paper;
   } else {
     return WorldDirectoryStructureConfig::Unknown;
   }

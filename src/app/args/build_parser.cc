@@ -105,9 +105,9 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   p.add({
       .long_name = "--src_world_structure",
       .short_name = "-w",
-      .meta = "<auto|old|new>",
+      .meta = "<auto|old|new|paper>",
       .description = "directory structure of source world. (old: DIM-1/, new: "
-                     "nether/) (default: auto)",
+                     "nether/, paper: world_nether/DIM-1/) (default: auto)",
       .takes_value = true,
       .required = false,
       .on_match =
@@ -117,9 +117,9 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   p.add({
       .long_name = "--dest_world_structure",
       .short_name = "-W",
-      .meta = "<auto|old|new>",
+      .meta = "<auto|old|new|paper>",
       .description = "directory structure of dest world. (old: DIM-1/, new: "
-                     "nether/) (default: auto)",
+                     "nether/, paper: world_nether/DIM-1/) (default: auto)",
       .takes_value = true,
       .required = false,
       .on_match =

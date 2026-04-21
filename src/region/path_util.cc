@@ -43,6 +43,17 @@ WorldDirectoryStructure detect_world_structure(
     return WorldDirectoryStructure::Old;
   }
 
+  std::string ow_paper(world_directory);
+  std::string ne_paper(world_directory);
+  std::string end_paper(world_directory);
+  ow_paper.append(dimension_path_with_slash_paper(Dimension::OverWorld));
+  ne_paper.append(dimension_path_with_slash_paper(Dimension::Nether));
+  end_paper.append(dimension_path_with_slash_paper(Dimension::End));
+  if (core::is_dir(ow_paper) || core::is_dir(ne_paper) ||
+      core::is_dir(end_paper)) {
+    return WorldDirectoryStructure::Old;
+  }
+
   return WorldDirectoryStructure::Unknown;
 }
 
@@ -55,6 +66,7 @@ WorldDirectoryStructure world_directory_structure_with_config(
     case WC::Auto: return detect_world_structure(world_dir);
     case WC::New: return WorldDirectoryStructure::New;
     case WC::Old: return WorldDirectoryStructure::Old;
+    case WC::Paper: return WorldDirectoryStructure::Paper;
     default: return WorldDirectoryStructure::Unknown;
   }
 }
@@ -80,6 +92,12 @@ void build_mca_dir_path(std::string* world_dir,
     }
     case WorldDirectoryStructure::Old: {
       world_dir->append(dimension_path_with_slash_old(dimension))
+          .append(type_path(type))
+          .push_back(PATH_DELIMITER);
+      return;
+    }
+    case WorldDirectoryStructure::Paper: {
+      world_dir->append(dimension_path_with_slash_paper(dimension))
           .append(type_path(type))
           .push_back(PATH_DELIMITER);
       return;

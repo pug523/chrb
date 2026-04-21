@@ -127,22 +127,33 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
       (max_region_x - min_region_x + 1) * (max_region_z - min_region_z + 1);
   DCHECK(estimated_region_count > 0);
 
-  std::string mca_dir = config_->src_world;
-  build_mca_dir_path(&mca_dir, config_->src_world_structure, dimension, type);
+  std::string src_mca_dir = config_->src_world;
+  build_mca_dir_path(&src_mca_dir, config_->src_world_structure, dimension,
+                     type);
 
-  if (!core::is_dir(mca_dir)) {
-    std::println(stderr, "{}directory not found: {}",
-                 core::error_prefix(config_->color_mode), mca_dir);
+  if (!core::is_dir(src_mca_dir)) {
+    std::println(stderr, "{}src directory not found: {}",
+                 core::error_prefix(config_->color_mode), src_mca_dir);
     return;
   }
 
-  const i64 files_on_disk = core::count_files(mca_dir);
+  std::string mca_dest_dir = config_->dest_world;
+  build_mca_dir_path(&mca_dest_dir, config_->dest_world_structure, dimension,
+                     type);
+
+  if (!core::is_dir(mca_dest_dir)) {
+    std::println(stderr, "{}dest directory not found: {}",
+                 core::error_prefix(config_->color_mode), mca_dest_dir);
+    return;
+  }
+
+  const i64 files_on_disk = core::count_files(src_mca_dir);
 
   if (estimated_region_count < files_on_disk) {
     schedule_for_each_region_requested(min_region_x, max_region_x, min_region_z,
                                        max_region_z, dimension, type);
   } else {
-    schedule_for_each_region_in_mca_dir(std::move(mca_dir), min_region_x,
+    schedule_for_each_region_in_mca_dir(std::move(src_mca_dir), min_region_x,
                                         max_region_x, min_region_z,
                                         max_region_z, dimension, type);
   }

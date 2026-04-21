@@ -85,7 +85,6 @@ void build_mca_dir_path(std::string* world_dir,
       return;
     }
     default: {
-      DCHECK(false);
       return;
     }
   }

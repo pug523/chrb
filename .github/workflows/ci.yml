@@ -25,7 +25,7 @@ jobs:
           - os: ubuntu-24.04
             plat: linux
             arch: x86_64
-            stdlib: libc++
+            stdlib: libstdc++
           - os: windows-2025-vs2026
             plat: windows
             arch: x64
@@ -104,6 +104,15 @@ jobs:
             -a "${{ matrix.arch }}" \
             --stdlib="${{ matrix.stdlib }}"
 
+      - name: analyze statically
+        if: matrix.os == 'ubuntu-24.04'
+        shell: bash
+        run: |
+          xmake check api
+          xmake check clang
+          xmake lint
+          xmake tidy
+
       - name: build chrb
         shell: bash
         run: xmake build chrb
@@ -116,13 +125,4 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: "${{ matrix.os }}"
-          path: out/*
-
-      - name: analyze statically
-        if: matrix.os == 'ubuntu-24.04'
-        shell: bash
-        run: |
-          xmake check api
-          xmake check clang
-          xmake analyze
-          xmake lint
+          path: "build/${{ matrix.plat }}/${{ matrix.arch }}/**"

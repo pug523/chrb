@@ -106,23 +106,23 @@ chrb --src ./my_backup --dest ./my_world --dim end --type=all --min_x -1 --min_z
 Usage: chrb [Options]
 
 Options:
-  -s, --src <path>                             source world directory [required]
-  -d, --dest <path>                            destination world directory [required]
-  -D, --dim <overworld|nether|end>             target dimension (default: overworld)
-  -t, --type <region|entities|poi|all>         rollback type (default: all)
-  -c, --color <auto|always|never>              color mode (default: auto)
-  -w, --src_world_structure <auto|old|new>     directory structure of source world. (old: DIM-1/, new: nether/) (default: auto)
-  -W, --dest_world_structure <auto|old|new>    directory structure of dest world. (old: DIM-1/, new: nether/) (default: auto)
-  -x, --min_x <n>                              minimum chunk x coordinate [required]
-  -X, --max_x <n>                              maximum chunk x coordinate [required]
-  -z, --min_z <n>                              minimum chunk z coordinate [required]
-  -Z, --max_z <n>                              maximum chunk z coordinate [required]
-  -j, --num_threads <n>                        number of worker threads (default: half of num threads on your hardware)
-  -b, --bulk_copy                              use bulk copy for full region rollback
-  -S, --silent                                 disable information logging
-  -V, --verbose                                enable verbose output
-  -h, --help                                   print this help message
-  -v, --version                                print version
+  -s, --src <path>                                          source world directory [required]
+  -d, --dest <path>                                         destination world directory [required]
+  -D, --dim <overworld|nether|end>                          target dimension (default: overworld)
+  -t, --type <region|entities|poi|all>                      rollback type (default: all)
+  -c, --color <auto|always|never>                           color mode (default: auto)
+  -w, --src_world_structure <auto|old|new|paper>            directory structure of source world. (old: DIM-1/, new: nether/, paper: world_nether/DIM-1/) (default: auto)
+  -W, --dest_world_structure <auto|old|new|paper>           directory structure of dest world. (old: DIM-1/, new: nether/, paper: world_nether/DIM-1/) (default: auto)
+  -x, --min_x <n>                                           minimum chunk x coordinate [required]
+  -X, --max_x <n>                                           maximum chunk x coordinate [required]
+  -z, --min_z <n>                                           minimum chunk z coordinate [required]
+  -Z, --max_z <n>                                           maximum chunk z coordinate [required]
+  -j, --num_threads <n>                                     number of worker threads (default: half of num threads on your hardware)
+  -b, --bulk_copy                                           use bulk copy for full region rollback
+  -S, --silent                                              disable information logging
+  -V, --verbose                                             enable verbose output
+  -h, --help                                                print this help message
+  -v, --version                                             print version
 ```
 
 ## Safety

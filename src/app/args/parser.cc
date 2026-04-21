@@ -193,7 +193,7 @@ void ArgParser::print_help() const {
     }
 
     // padding
-    const size_t pad = color ? 64 : 40;
+    const size_t pad = color ? 80 : 60;
     if (left.size() < pad) {
       left.append(pad - left.size(), ' ');
     }

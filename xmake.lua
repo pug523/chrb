@@ -15,6 +15,7 @@ option("native", { default = false, description = "native architecture optimizat
 option("unitybuild", { default = false, description = "enable unity build to shorten build time" })
 option("lto", { default = false, description = "use link time optimization on release builds" })
 option("tests", { default = false, description = "build unit tests" })
+option("lib", { default = false, description = "build as static library"})
 option("stdlib", { default = "libstdc++", description = "stl to use" })
 
 set_policy("build.ccache", true)
@@ -23,17 +24,24 @@ set_policy("build.progress_style", "multirow")
 set_policy("build.c++.msvc.runtime", "MD")
 
 add_rules("mode.debug", "mode.release", "mode.releasedbg")
-add_rules("plugin.compile_commands.autoupdate", {outputdir = "out"})
+add_rules("plugin.compile_commands.autoupdate")
 
-set_targetdir("out/$(plat)-$(arch)-$(mode)")
+-- set_targetdir("out/$(plat)-$(arch)-$(mode)")
 
 local is_gcc = is_config("toolchain", "gcc")
 local is_clang = is_config("toolchain", "clang", "llvm")
 
 local chrb_modules = {
-  "chrb.core",
-  "chrb.region",
+  "chrb_core",
+  "chrb_region",
 }
+
+local build_kind
+if has_config("lib") then
+  build_kind = "static"
+else
+  build_kind = "binary"
+end
 
 -- Helper functions
 local function stdlib_config()
@@ -140,7 +148,7 @@ after_run(function(target)
 end)
 
 -- targets
-target("chrb.root_config")
+target("chrb_root_config")
   set_kind("phony", {public = true})
   set_languages("c++23", { public = true })
   set_warnings("all", "extra", "error", "pedantic", {public = true})
@@ -220,31 +228,23 @@ target("chrb.root_config")
   end
 target_end()
 
-target("chrb.core")
-  add_deps("chrb.root_config")
+target("chrb_core")
+  add_deps("chrb_root_config")
   set_kind("object")
   add_files("src/core/**.cc")
   set_default(false)
 target_end()
 
-target("chrb.region")
-  add_deps("chrb.root_config")
+target("chrb_region")
+  add_deps("chrb_root_config")
   set_kind("object")
   add_files("src/region/**.cc")
   set_default(false)
 target_end()
 
-target("libchrb")
-  add_deps("chrb.root_config")
-  set_kind("static")
-  add_deps(chrb_modules)
-  add_headerfiles("src/(**.h)", { prefixdir = "chrb" })
-  set_default(false)
-target_end()
-
 target("chrb")
-  add_deps("chrb.root_config")
-  set_kind("binary")
+  add_deps("chrb_root_config")
+  set_kind(build_kind)
   add_files("src/app/**.cc")
   add_deps(chrb_modules)
   set_default(true)
@@ -252,7 +252,7 @@ target_end()
 
 target("tests")
   set_enabled(has_config("tests"))
-  add_deps("chrb.root_config")
+  add_deps("chrb_root_config")
   set_kind("binary")
   add_files("tests/**.cc")
   add_deps(chrb_modules)

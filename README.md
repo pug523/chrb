@@ -134,9 +134,12 @@ Direct manipulation of MCA files carries inherent risks, and I'm not responsible
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## Tested Versions
+## Tested Environments
 
-- 1.21.1
+- 1.19.4 - Paper
+- 1.21.1 - Fabric
+- 1.21.11 - Fabric
+- 26.1 - Fabric
 
 ## License
 Copyright &copy; 2026 pugur  

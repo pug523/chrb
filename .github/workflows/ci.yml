@@ -104,15 +104,6 @@ jobs:
             -a "${{ matrix.arch }}" \
             --stdlib="${{ matrix.stdlib }}"
 
-      - name: analyze statically
-        if: matrix.os == 'ubuntu-24.04'
-        shell: bash
-        run: |
-          xmake check api
-          xmake check clang
-          xmake lint
-          xmake tidy
-
       - name: build chrb
         shell: bash
         run: xmake build chrb
@@ -126,3 +117,13 @@ jobs:
         with:
           name: "${{ matrix.plat }}-${{ matrix.arch }}"
           path: "build/${{ matrix.plat }}/${{ matrix.arch }}/**"
+
+      - name: analyze statically
+        if: matrix.os == 'ubuntu-24.04'
+        shell: bash
+        run: |
+          xmake check api
+          xmake check clang
+          xmake lint
+          xmake tidy
+

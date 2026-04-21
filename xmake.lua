@@ -86,7 +86,7 @@ task("tidy")
     on_run( function ()
         local files = source_files()
         if #files > 0 then
-          os.runv("clang-tidy", table.join({ "--use-color", "--fix", "--config-file=./.clang-tidy", "-p", "out/" }, files))
+          os.runv("clang-tidy", table.join({ "--use-color", "--fix", "--config-file=./.clang-tidy", }, files))
         end
     end)
 task_end()
@@ -106,7 +106,7 @@ task_end()
 -- Events
 after_build(function(target)
   if has_config("timetrace") then
-    local trace_dir = path.join(os.projectdir(), "out/timetrace")
+    local trace_dir = path.join(os.projectdir(), "build/timetrace")
     os.mkdir(trace_dir)
     for _, objfile in ipairs(target:objectfiles()) do
       local base = path.directory(objfile) .. "/" .. path.basename(objfile)
@@ -118,7 +118,7 @@ after_build(function(target)
   end
 
   if has_config("optreport") and is_mode("release") then
-    local remark_dir = "out/remarks"
+    local remark_dir = "build/remarks"
     os.mkdir(remark_dir)
     for _, yaml in ipairs(os.files(path.join(target:targetdir(), "**.opt.yaml"))) do
       os.cp(yaml, remark_dir)
@@ -130,7 +130,7 @@ after_run(function(target)
   if has_config("coverage") and target:name() == "tests" and not is_plat("windows") then
     local profraw = path.join(target:targetdir(), "default.profraw")
     local profdata = path.join(target:targetdir(), "default.profdata")
-    local coverage_dir = "out/coverage"
+    local coverage_dir = "build/coverage"
 
     os.runv("llvm-profdata", { "merge", "-sparse", profraw, "-o", profdata })
     os.runv(

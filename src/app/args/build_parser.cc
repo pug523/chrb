@@ -18,8 +18,8 @@
 namespace app {
 
 // fallback
-#ifndef PROJECT_VERSION
-#define PROJECT_VERSION "undefined"
+#ifndef CHRB_PROJECT_VERSION
+#define CHRB_PROJECT_VERSION "undefined"
 #endif
 
 namespace {
@@ -49,7 +49,7 @@ bool safe_stoi(std::string_view str, i32* dest) {
 }  // namespace
 
 ArgParser build_arg_parser(region::RollbackConfig* config) {
-  ArgParser p("chrb", PROJECT_VERSION,
+  ArgParser p("chrb", CHRB_PROJECT_VERSION,
               "=-=-= chunk rollback tool for minecraft =-=-=");
 
   p.add({

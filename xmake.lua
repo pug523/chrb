@@ -3,7 +3,7 @@
 -- which can be found in the LICENSE file.
 
 set_project("chrb")
-local project_version = "0.2.0"
+local project_version = "0.3.0"
 set_version(project_version)
 
 option("coverage", { default = false, description = "use llvm-cov for analyzing test coverage" })
@@ -154,6 +154,8 @@ target("chrb_root_config")
   set_warnings("all", "extra", "error", "pedantic", {public = true})
 
   set_encodings("source:utf-8", "utf-8")
+
+  add_defines('CHRB_PROJECT_VERSION="' .. project_version .. '"', { public = true })
 
   add_includedirs("src", {public = true})
   -- add_includedirs("src", "third_party", {public = true})

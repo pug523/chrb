@@ -1,6 +1,6 @@
-build/
-install/
-out/
+/build/
+/install/
+/out/
 .xmake/
 .vscode/
 .cache/

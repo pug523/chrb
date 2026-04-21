@@ -31,12 +31,30 @@ inline Dimension str_to_dimension(const std::string_view s) {
   }
 }
 
-inline const char* dimension_path_with_slash(Dimension d) {
+inline const char* dimension_to_str(Dimension d) {
+  switch (d) {
+    case Dimension::OverWorld: return "overworld";
+    case Dimension::Nether: return "nether";
+    case Dimension::End: return "end";
+    default: DCHECK(false); return "unknown";
+  }
+}
+
+inline const char* dimension_path_with_slash_old(Dimension d) {
   switch (d) {
     case Dimension::OverWorld: return "";
     case Dimension::Nether: return "DIM-1/";
     case Dimension::End: return "DIM1/";
-    default: dcheck(false); return "unknown";
+    default: DCHECK(false); return "unknown";
+  }
+}
+
+inline const char* dimension_path_with_slash_new(Dimension d) {
+  switch (d) {
+    case Dimension::OverWorld: return "dimensions/minecraft/overworld/";
+    case Dimension::Nether: return "dimensions/minecraft/the_nether/";
+    case Dimension::End: return "dimensions/minecraft/the_end/";
+    default: DCHECK(false); return "unknown";
   }
 }
 

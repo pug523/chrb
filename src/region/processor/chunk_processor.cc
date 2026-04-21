@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
 #include <print>
 #include <vector>
 
@@ -31,11 +32,11 @@ void ChunkProcessor::init(i32 rx,
   dest_ = dest;
   config_ = config;
 
-  dcheck(src_);
-  dcheck(dest_);
-  dcheck(src_->is_open());
-  dcheck(dest_->is_open());
-  dcheck(config_);
+  DCHECK(src_);
+  DCHECK(dest_);
+  DCHECK(src_->is_open());
+  DCHECK(dest_->is_open());
+  DCHECK(config_);
 }
 
 void ChunkProcessor::process(i32 cx, i32 cz) {
@@ -53,14 +54,15 @@ void ChunkProcessor::process(i32 cx, i32 cz) {
     Replace = 0b11,
   };
 
-  const Task task = static_cast<Task>(u8(dest_exists << 1 | src_exists));
+  const Task task =
+      static_cast<Task>(static_cast<u8>(dest_exists << 1 | src_exists));
 
   switch (task) {
     case Task::Ignore: ignore_chunk(cx, cz); break;
     case Task::Add: add_chunk(cx, cz, index, src_loc); break;
     case Task::Delete: delete_chunk(cx, cz, index); break;
     case Task::Replace: replace_chunk(cx, cz, index, src_loc, dest_loc); break;
-    default: dcheck(false); break;
+    default: DCHECK(false); break;
   }
 }
 
@@ -190,10 +192,10 @@ void ChunkProcessor::update_location_table(size_t index,
 void ChunkProcessor::update_timestamp(size_t index) {
   const uint32_t now = static_cast<u32>(time(nullptr));
   u8 ts[4] = {
-      u8(now >> 24),
-      u8(now >> 16),
-      u8(now >> 8),
-      u8(now),
+      static_cast<u8>(now >> 24),
+      static_cast<u8>(now >> 16),
+      static_cast<u8>(now >> 8),
+      static_cast<u8>(now),
   };
   dest_->write(4096 + index * 4, ts, 4);
 }

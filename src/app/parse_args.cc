@@ -14,6 +14,7 @@
 #include "region/dimension.h"
 #include "region/rollback_config.h"
 #include "region/rollback_type.h"
+#include "region/world_directory_structure.h"
 
 namespace app {
 
@@ -27,8 +28,8 @@ ArgStatus parse_args(i32 argc, char** argv, region::RollbackConfig* config) {
     return ArgStatus::PrintVersion;
   }
 
-  const bool required_ok = parser.validate_required();
   const ArgStatus vs = validate_config(config);
+  const bool required_ok = parser.validate_required();
   if (pr != ParseResult::Ok || !required_ok || vs != ArgStatus::Success) {
     std::println(stderr, "{}failed to parse commandline arguments",
                  core::error_prefix(config->color_mode));
@@ -47,6 +48,7 @@ ArgStatus validate_config(region::RollbackConfig* config) {
     std::println(stderr, "{}invalid color mode: {}",
                  core::error_prefix(core::ColorMode::Never), config->color_str);
     result = ArgStatus::InvalidColorMode;
+    config->color_mode = core::ColorMode::Auto;
   }
 
   if (config->src_world.empty()) {
@@ -72,6 +74,26 @@ ArgStatus validate_config(region::RollbackConfig* config) {
     std::println(stderr, "{}invalid rollback type: {}",
                  core::error_prefix(config->color_mode), config->type_str);
     result = ArgStatus::InvalidRollbackType;
+  }
+
+  config->src_world_structure =
+      region::str_to_world_dir_structure(config->src_world_structure_str);
+  if (config->src_world_structure ==
+      region::WorldDirectoryStructureConfig::Unknown) {
+    std::println(stderr, "{}invalid src world structure specified: {}",
+                 core::error_prefix(config->color_mode),
+                 config->src_world_structure_str);
+    result = ArgStatus::InvalidSourceWorldStructureConfig;
+  }
+
+  config->dest_world_structure =
+      region::str_to_world_dir_structure(config->dest_world_structure_str);
+  if (config->dest_world_structure ==
+      region::WorldDirectoryStructureConfig::Unknown) {
+    std::println(stderr, "{}invalid dest world structure specified: {}",
+                 core::error_prefix(config->color_mode),
+                 config->dest_world_structure_str);
+    result = ArgStatus::InvalidDestinationWorldStructureConfig;
   }
 
   if (!config->min_x || !config->max_x || !config->min_z || !config->max_z) {

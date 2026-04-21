@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <print>
 
+#include "build/build_config.h"
+
 namespace core {
 
 [[noreturn]] inline void dcheck_fail(const char* expr,
@@ -20,15 +22,15 @@ namespace core {
 
 }  // namespace core
 
-#ifdef DEBUG
-#define dcheck(expr)                                            \
+#if CHRB_BUILD_FLAG(IS_DEBUG)
+#define DCHECK(expr)                                            \
   do {                                                          \
     if (__builtin_expect(!(expr), 0)) {                         \
       ::core::dcheck_fail(#expr, __FILE__, __LINE__, __func__); \
     }                                                           \
   } while (false)
 #else
-#define dcheck(expr) \
+#define DCHECK(expr) \
   do {               \
     (void)(expr);    \
   } while (false)

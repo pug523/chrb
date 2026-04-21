@@ -70,13 +70,15 @@ jobs:
             -m release \
             --toolchain=llvm \
             --unitybuild=y \
+            --lto=y \
             -p "${{ matrix.plat }}" \
             -a "${{ matrix.arch }}" \
             --stdlib="${{ matrix.stdlib }}"
 
-      - name: build chrb
+      - name: build
         shell: bash
-        run: xmake build chrb
+        run: |
+          xmake build chrb
 
       - name: package artifact
         shell: bash

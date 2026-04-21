@@ -6,15 +6,16 @@
 
 #include <string_view>
 
+#include "build/build_config.h"
 #include "core/core.h"
 #include "region/rollback_config.h"
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 #include <cstddef>
 #include <functional>
 #include <string>
 #include <vector>
-#endif
+#endif  // CHRB_BUILD_FLAG(IS_OS_LINUX)
 
 namespace region {
 
@@ -31,13 +32,13 @@ class FullRegionProcessor {
 
   void init(RollbackConfig* config);
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
   size_t process_batch(const std::vector<std::string>& srcs,
                        const std::vector<std::string>& dsts,
                        u32 queue_depth,
                        const std::function<void(size_t)>& success_cb,
                        const std::function<void(size_t)>& failure_cb);
-#endif
+#endif  // CHRB_BUILD_FLAG(IS_OS_LINUX)
 
   bool process_one(const i32 rx,
                    const i32 rz,

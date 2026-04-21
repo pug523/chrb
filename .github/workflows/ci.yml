@@ -99,6 +99,7 @@ jobs:
             --sanitizers=y \
             --toolchain=llvm \
             --unitybuild=y \
+            --tests=y \
             -p "${{ matrix.plat }}" \
             -a "${{ matrix.arch }}" \
             --stdlib="${{ matrix.stdlib }}"

@@ -13,10 +13,11 @@
 #include <string_view>
 #include <vector>
 
+#include "build/build_config.h"
 #include "core/check.h"
 #include "core/core.h"
 
-#if defined(IS_PLAT_LINUX)
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 #include <asm/unistd_64.h>
 // NOLINTNEXTLINE
 #include <dirent.h>
@@ -32,12 +33,12 @@
 #include <cerrno>
 #include <cstring>
 #include <utility>
-#elif defined(IS_PLAT_MACOS)
+#elif CHRB_BUILD_FLAG(IS_OS_MAC)
 // NOLINTNEXTLINE
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#elif defined(IS_PLAT_WINDOWS)
+#elif CHRB_BUILD_FLAG(IS_OS_WIN)
 #include <io.h>
 #include <windows.h>
 #define stat _stat
@@ -61,9 +62,9 @@ inline bool exists_as(const std::string_view path, u32 mask) {
   return (info.st_mode & mask) != 0;
 }
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 // define linux_dirent64 manually as it is not in glibc headers
-struct linux_dirent64 {
+struct LinuxDirent64 {
   u64 d_ino;
   i64 d_off;
   u16 d_reclen;
@@ -74,13 +75,13 @@ struct linux_dirent64 {
 
 i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
   i64 count = 0;
-#if defined(IS_PLAT_LINUX)
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
   const i32 fd = open(path.c_str(), O_RDONLY | O_DIRECTORY);
   if (fd == -1) {
     return 0;
   }
 
-  alignas(linux_dirent64) char buf[16384];
+  alignas(LinuxDirent64) char buf[16384];
   while (true) {
     const i64 nread = syscall(SYS_getdents64, fd, buf, sizeof(buf));
     if (nread <= 0) {
@@ -88,7 +89,7 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
     }
 
     for (i64 bpos = 0; bpos < nread;) {
-      const linux_dirent64* d = reinterpret_cast<linux_dirent64*>(buf + bpos);
+      const LinuxDirent64* d = reinterpret_cast<LinuxDirent64*>(buf + bpos);
       const char* name = d->d_name;
 
       if (name[0] == '.' &&
@@ -120,7 +121,7 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
   }
   close(fd);
 
-#elif defined(IS_PLAT_WINDOWS)
+#elif CHRB_BUILD_FLAG(IS_OS_WIN)
   // narrow -> wide conversion via WinAPI to handle non-ASCII paths correctly
   const i32 wlen =
       MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
@@ -217,7 +218,7 @@ i64 walk_recursive(const std::string& path, std::vector<std::string>* out) {
   return count;
 }
 
-#if defined(IS_PLAT_LINUX)
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 
 // thin syscall wrappers without liburing dependency
 inline int io_uring_setup(u32 entries, struct io_uring_params* p) {
@@ -468,7 +469,7 @@ inline bool tag_is_write(u64 tag) {
   return (tag & 1u) != 0;
 }
 
-#endif  // IS_PLAT_LINUX
+#endif  // CHRB_BUILD_FLAG(IS_OS_LINUX)
 
 }  // namespace
 
@@ -481,7 +482,7 @@ bool is_file(const std::string_view path) {
 }
 
 bool create_file(const std::string_view path) {
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   i32 fd;
   errno_t err =
       _sopen_s(&fd, path.data(), O_CREAT | O_WRONLY | O_TRUNC, _SH_DENYNO, 0);
@@ -499,7 +500,7 @@ bool create_file(const std::string_view path) {
 }
 
 bool copy_file(const std::string_view from, const std::string_view to) {
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   i32 source;
   errno_t err = _sopen_s(&source, from.data(), O_RDONLY, _SH_DENYNO, 0);
   if (err != 0) {
@@ -512,7 +513,7 @@ bool copy_file(const std::string_view from, const std::string_view to) {
     return false;
   }
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   i32 dest;
   errno_t err2 = _sopen_s(&dest, to.data(), O_CREAT | O_WRONLY | O_TRUNC,
                           _SH_DENYNO, S_IRUSR | S_IWUSR);
@@ -529,7 +530,7 @@ bool copy_file(const std::string_view from, const std::string_view to) {
     return false;
   }
 
-#if defined(IS_PLAT_LINUX)
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
   // sendfile copies entirely in kernel space — no userland buffer round-trip
   struct stat src_stat;
   if (fstat(source, &src_stat) == -1) {
@@ -575,25 +576,25 @@ bool rename_file(const std::string_view from, const std::string_view to) {
 }
 
 i64 count_files(const std::string_view dir) {
-  dcheck(!dir.empty());
-  dcheck(is_dir(dir));
+  DCHECK(!dir.empty());
+  DCHECK(is_dir(dir));
   return walk_recursive(std::string(dir), nullptr);
 }
 
 std::vector<std::string> list_files(const std::string_view dir) {
-  dcheck(!dir.empty());
-  dcheck(is_dir(dir));
+  DCHECK(!dir.empty());
+  DCHECK(is_dir(dir));
   std::vector<std::string> files;
   walk_recursive(std::string(dir), &files);
   return files;
 }
 
-#if defined(IS_PLAT_LINUX)
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 
 std::vector<u64> async_copy_files(const std::vector<std::string>& srcs,
                                   const std::vector<std::string>& dests,
                                   u32 queue_depth) {
-  dcheck(srcs.size() == dests.size());
+  DCHECK(srcs.size() == dests.size());
 
   const size_t n = srcs.size();
   // failure bitmask: one bit per file, packed into u64 words
@@ -928,7 +929,6 @@ std::vector<u64> async_copy_files(const std::vector<std::string>& srcs,
   return failed_mask;
 }
 
-#endif  // IS_PLAT_LINUX
+#endif  // CHRB_BUILD_FLAG(IS_OS_LINUX)
 
 }  // namespace core
-

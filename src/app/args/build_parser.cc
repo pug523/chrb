@@ -18,8 +18,8 @@
 namespace app {
 
 // fallback
-#ifndef PROJECT_VERSION
-#define PROJECT_VERSION "undefined"
+#ifndef CHRB_PROJECT_VERSION
+#define CHRB_PROJECT_VERSION "undefined"
 #endif
 
 namespace {
@@ -49,7 +49,7 @@ bool safe_stoi(std::string_view str, i32* dest) {
 }  // namespace
 
 ArgParser build_arg_parser(region::RollbackConfig* config) {
-  ArgParser p("chrb", PROJECT_VERSION,
+  ArgParser p("chrb", CHRB_PROJECT_VERSION,
               "=-=-= chunk rollback tool for minecraft =-=-=");
 
   p.add({
@@ -100,6 +100,32 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .takes_value = true,
       .required = false,
       .on_match = [config](std::string_view v) { config->color_str = v; },
+  });
+
+  p.add({
+      .long_name = "--src_world_structure",
+      .short_name = "-w",
+      .meta = "<auto|old|new>",
+      .description = "directory structure of source world. (old: DIM-1/, new: "
+                     "nether/) (default: auto)",
+      .takes_value = true,
+      .required = false,
+      .on_match =
+          [config](std::string_view v) { config->src_world_structure_str = v; },
+  });
+
+  p.add({
+      .long_name = "--dest_world_structure",
+      .short_name = "-W",
+      .meta = "<auto|old|new>",
+      .description = "directory structure of dest world. (old: DIM-1/, new: "
+                     "nether/) (default: auto)",
+      .takes_value = true,
+      .required = false,
+      .on_match =
+          [config](std::string_view v) {
+            config->dest_world_structure_str = v;
+          },
   });
 
   p.add({

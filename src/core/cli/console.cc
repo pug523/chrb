@@ -6,7 +6,7 @@
 
 #include "core/check.h"
 
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
 #include <io.h>
 #include <windows.h>
 #else
@@ -18,7 +18,7 @@ namespace core {
 namespace {
 
 bool check_ansi_sequence_available(Stream stream) {
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   // check if GetStdHandle() returns terminal handle
   DWORD handle = 0;
   if (stream == Stream::Stdout) {
@@ -49,7 +49,7 @@ bool check_ansi_sequence_available(Stream stream) {
   } else if (stream == Stream::Stderr) {
     return isatty(STDERR_FILENO);
   }
-  dcheck(false);
+  DCHECK(false);
   return false;
 #endif
 }
@@ -62,13 +62,13 @@ bool can_use_ansi_escape_sequence(Stream stream) {
   switch (stream) {
     case Stream::Stdout: return out;
     case Stream::Stderr: return err;
-    default: dcheck(false); return false;
+    default: DCHECK(false); return false;
   }
 }
 
 void register_console() {
   // set console mode to utf8
-#ifdef IS_PLAT_WINDOWS
+#if CHRB_BUILD_FLAG(IS_OS_WIN)
   SetConsoleCP(CP_UTF8);
   SetConsoleOutputCP(CP_UTF8);
 #endif

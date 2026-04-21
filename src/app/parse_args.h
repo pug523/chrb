@@ -19,6 +19,8 @@ enum class ArgStatus : u8 {
   DestinationWorldEmpty,
   InvalidDimension,
   InvalidRollbackType,
+  InvalidSourceWorldStructureConfig,
+  InvalidDestinationWorldStructureConfig,
   ChunkRangeMissing,
   InvalidNumThreads,
 };

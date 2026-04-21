@@ -68,14 +68,15 @@ class RollbackExecutor {
                                           const i32 max_region_z,
                                           const Dimension dimension,
                                           const RollbackType type);
-  void schedule_for_each_region_in_mca_dir(const i32 min_region_x,
+  void schedule_for_each_region_in_mca_dir(std::string&& src_mca_dir,
+                                           const i32 min_region_x,
                                            const i32 max_region_x,
                                            const i32 min_region_z,
                                            const i32 max_region_z,
                                            const Dimension dimension,
                                            const RollbackType type);
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
   void run_full_copy_batch();
 #endif
 
@@ -91,16 +92,8 @@ class RollbackExecutor {
   void rollback_chunks(i32 rx,
                        i32 rz,
                        ChunkRange range,
-                       const std::string& src_file,
-                       const std::string& dest_file);
-
-  bool build_region_paths(const RollbackTask& task,
-                          std::string* out_src,
-                          std::string* out_dest);
-
-  static bool parse_region_filename(const std::string& path,
-                                    i32* out_rx,
-                                    i32* out_rz);
+                       std::string_view src_file,
+                       std::string_view dest_file);
 
   std::queue<RollbackTask> region_queue_;
   std::mutex mutex_;

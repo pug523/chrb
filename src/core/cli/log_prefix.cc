@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <string_view>
 
+#include "core/check.h"
 #include "core/cli/console.h"
 #include "core/cli/style_util.h"
 
@@ -96,7 +97,7 @@ std::string_view log_prefix(ColorMode mode, LogLevel level) {
     }
     default: {
       // unreachable
-      dcheck(false);
+      DCHECK(false);
       return "";
     }
   }

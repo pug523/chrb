@@ -34,12 +34,21 @@ inline RollbackType str_to_rollback_type(const std::string_view s) {
   }
 }
 
+inline const char* type_to_str(RollbackType t) {
+  switch (t) {
+    case RollbackType::Region: return "region";
+    case RollbackType::Entities: return "entities";
+    case RollbackType::Poi: return "poi";
+    default: DCHECK(false); return "unknown";
+  }
+}
+
 inline const char* type_path(RollbackType t) {
   switch (t) {
     case RollbackType::Region: return "region";
     case RollbackType::Entities: return "entities";
     case RollbackType::Poi: return "poi";
-    default: dcheck(false); return "unknown";
+    default: DCHECK(false); return "unknown";
   }
 }
 

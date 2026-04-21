@@ -23,6 +23,7 @@
 #include "core/file_util.h"
 #include "core/mem/mapped_file.h"
 #include "region/dimension.h"
+#include "region/path_util.h"
 #include "region/processor/chunk_processor.h"
 #include "region/processor/full_region_processor.h"
 #include "region/rollback_config.h"
@@ -35,11 +36,11 @@ void RollbackExecutor::init(RollbackConfig* config) {
   config_ = config;
   workers_.reserve(static_cast<size_t>(config_->num_threads));
 
-  dcheck(config_);
+  DCHECK(config_);
 }
 
 void RollbackExecutor::start() {
-  dcheck(config_->num_threads > 0);
+  DCHECK(config_->num_threads > 0);
 
   if (!config_->silent) {
     std::println("{}starting rollback...",
@@ -72,7 +73,7 @@ void RollbackExecutor::start() {
                  core::info_prefix(config_->color_mode), region_queue_.size());
   }
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
   if (config_->bulk_copy) {
     run_full_copy_batch();
   }
@@ -124,19 +125,37 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
 
   const i64 estimated_region_count =
       (max_region_x - min_region_x + 1) * (max_region_z - min_region_z + 1);
-  dcheck(estimated_region_count > 0);
+  DCHECK(estimated_region_count > 0);
 
-  std::string mca_dir = config_->src_world;
-  mca_dir.append(dimension_path_with_slash(dimension)).append(type_path(type));
-  const i64 files_on_disk = core::count_files(mca_dir);
+  std::string src_mca_dir = config_->src_world;
+  build_mca_dir_path(&src_mca_dir, config_->src_world_structure, dimension,
+                     type);
+
+  if (!core::is_dir(src_mca_dir)) {
+    std::println(stderr, "{}src directory not found: {}",
+                 core::error_prefix(config_->color_mode), src_mca_dir);
+    return;
+  }
+
+  std::string mca_dest_dir = config_->dest_world;
+  build_mca_dir_path(&mca_dest_dir, config_->dest_world_structure, dimension,
+                     type);
+
+  if (!core::is_dir(mca_dest_dir)) {
+    std::println(stderr, "{}dest directory not found: {}",
+                 core::error_prefix(config_->color_mode), mca_dest_dir);
+    return;
+  }
+
+  const i64 files_on_disk = core::count_files(src_mca_dir);
 
   if (estimated_region_count < files_on_disk) {
     schedule_for_each_region_requested(min_region_x, max_region_x, min_region_z,
                                        max_region_z, dimension, type);
   } else {
-    schedule_for_each_region_in_mca_dir(min_region_x, max_region_x,
-                                        min_region_z, max_region_z, dimension,
-                                        type);
+    schedule_for_each_region_in_mca_dir(std::move(src_mca_dir), min_region_x,
+                                        max_region_x, min_region_z,
+                                        max_region_z, dimension, type);
   }
 }
 
@@ -155,8 +174,9 @@ void RollbackExecutor::schedule_for_each_region_requested(
       const i32 max_chunk_z = (rz << 5) + 31;
 
       if (config_->verbose) {
-        std::println("{}scheduling region r({:4}, {:4})",
-                     core::debug_prefix(config_->color_mode), rx, rz);
+        std::println("{}scheduling r({:4}, {:4}) in {} for {}",
+                     core::debug_prefix(config_->color_mode), rx, rz,
+                     dimension_to_str(dimension), type_to_str(type));
       }
 
       const bool fully_contained =
@@ -179,16 +199,14 @@ void RollbackExecutor::schedule_for_each_region_requested(
 }
 
 void RollbackExecutor::schedule_for_each_region_in_mca_dir(
+    std::string&& src_mca_dir,
     const i32 min_rx,
     const i32 max_rx,
     const i32 min_rz,
     const i32 max_rz,
     const Dimension dimension,
     const RollbackType type) {
-  std::string mca_dir = config_->src_world;
-  mca_dir.append(dimension_path_with_slash(dimension)).append(type_path(type));
-
-  for (const std::string& file : core::list_files(mca_dir)) {
+  for (const std::string& file : core::list_files(src_mca_dir)) {
     i32 rx = 0;
     i32 rz = 0;
     if (!parse_region_filename(file, &rx, &rz)) {
@@ -205,8 +223,9 @@ void RollbackExecutor::schedule_for_each_region_in_mca_dir(
     const i32 max_cz = (rz << 5) + 31;
 
     if (config_->verbose) {
-      std::println("{}scheduling region r({:4}, {:4})",
-                   core::debug_prefix(config_->color_mode), rx, rz);
+      std::println("{}scheduling r({:4}, {:4}) in {} for {}",
+                   core::debug_prefix(config_->color_mode), rx, rz,
+                   dimension_to_str(dimension), type_to_str(type));
     }
 
     const bool fully_contained =
@@ -227,7 +246,7 @@ void RollbackExecutor::schedule_for_each_region_in_mca_dir(
   }
 }
 
-#ifdef IS_PLAT_LINUX
+#if CHRB_BUILD_FLAG(IS_OS_LINUX)
 void RollbackExecutor::run_full_copy_batch() {
   // drain full-copy tasks; leave partial tasks in the queue
   std::vector<RollbackTask> full_tasks;
@@ -260,14 +279,15 @@ void RollbackExecutor::run_full_copy_batch() {
 
   for (size_t i = 0; i < full_tasks.size(); ++i) {
     const RollbackTask& task = full_tasks[i];
-    std::string src, dest;
+    std::string src = config_->src_world;
+    std::string dest = config_->dest_world;
+    build_mca_dir_path(&src, config_->src_world_structure, task.dimension,
+                       task.type);
+    build_mca_dir_path(&src, config_->src_world_structure, task.dimension,
+                       task.type);
+    build_mca_file_path(&src, task.region);
+    build_mca_file_path(&dest, task.region);
 
-    if (!build_region_paths(task, &src, &dest)) {
-      failed_region_count_.fetch_add(1);
-      std::unique_lock<std::mutex> lock(failed_regions_mutex_);
-      failed_regions_.emplace_back(task.region.x, task.region.z);
-      continue;
-    }
     if (!core::is_file(src) || !core::is_file(dest)) {
       if (config_->verbose) {
         std::println("{}skipped missing region: r.{}.{}.mca",
@@ -319,8 +339,8 @@ void RollbackExecutor::run_full_copy_batch() {
 #endif
 
 void RollbackExecutor::start_workers() {
-  dcheck(0 < config_->num_threads);
-  dcheck(config_->num_threads <=
+  DCHECK(0 < config_->num_threads);
+  DCHECK(config_->num_threads <=
          static_cast<i32>(std::thread::hardware_concurrency()));
 
   if (region_queue_.empty()) {
@@ -362,13 +382,11 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
   const i32 rz = task.region.z;
 
   std::string src_dir(config_->src_world);
-  src_dir.append(dimension_path_with_slash(task.dimension))
-      .append(type_path(task.type))
-      .push_back(PATH_DELIMITER);
+  build_mca_dir_path(&src_dir, config_->src_world_structure, task.dimension,
+                     task.type);
   std::string dest_dir(config_->dest_world);
-  dest_dir.append(dimension_path_with_slash(task.dimension))
-      .append(type_path(task.type))
-      .push_back(PATH_DELIMITER);
+  build_mca_dir_path(&dest_dir, config_->src_world_structure, task.dimension,
+                     task.type);
   {
     bool dir_exists = true;
     if (!core::is_dir(src_dir)) {
@@ -416,7 +434,7 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
     }
     default: {
       // unreachable
-      dcheck(false);
+      DCHECK(false);
       break;
     }
   }
@@ -441,8 +459,8 @@ void RollbackExecutor::rollback_region(i32 rx,
 void RollbackExecutor::rollback_chunks(i32 rx,
                                        i32 rz,
                                        ChunkRange range,
-                                       const std::string& src_file,
-                                       const std::string& dest_file) {
+                                       std::string_view src_file,
+                                       std::string_view dest_file) {
   constexpr size_t kMcaHeaderSize = 8192;
   core::MappedFile src;
   src.open(src_file, kMcaHeaderSize);
@@ -482,103 +500,11 @@ void RollbackExecutor::rollback_chunks(i32 rx,
 
   const i64 chunks_tried =
       (range.max_x - range.min_x + 1) * (range.max_z - range.min_z + 1);
-  dcheck(chunks_tried > 0);
+  DCHECK(chunks_tried > 0);
   successfull_chunk_count_.fetch_add(static_cast<u64>(chunks_tried));
   // successfull_chunk_count_.fetch_add(
   //     static_cast<u64>(chunks_tried - failed_local));
   // failed_chunk_count_.fetch_add(static_cast<u64>(failed_local));
-}
-
-bool RollbackExecutor::build_region_paths(const RollbackTask& task,
-                                          std::string* out_src,
-                                          std::string* out_dest) {
-  const std::string suffix =
-      std::string(dimension_path_with_slash(task.dimension))
-          .append(type_path(task.type));
-
-  std::string src = std::string(config_->src_world) + '/' + suffix;
-  std::string dest = std::string(config_->dest_world) + '/' + suffix;
-
-  if (!core::is_dir(src)) {
-    std::println(stderr, "{}directory not found: {}",
-                 core::error_prefix(config_->color_mode), src);
-    return false;
-  }
-  if (!core::is_dir(dest)) {
-    std::println(stderr, "{}directory not found: {}",
-                 core::error_prefix(config_->color_mode), dest);
-    return false;
-  }
-
-  const std::string filename =
-      std::format("r.{}.{}.mca", task.region.x, task.region.z);
-  src.push_back(PATH_DELIMITER);
-  src.append(filename);
-  dest.push_back(PATH_DELIMITER);
-  dest.append(filename);
-
-  *out_src = std::move(src);
-  *out_dest = std::move(dest);
-  return true;
-}
-
-// static
-bool RollbackExecutor::parse_region_filename(const std::string& path,
-                                             i32* out_rx,
-                                             i32* out_rz) {
-  // find the last '/' or '\' to isolate the filename
-  const size_t slash = path.find_last_of("/\\");
-  const size_t name_start = (slash == std::string::npos) ? 0 : slash + 1;
-  const std::string_view name(path.data() + name_start,
-                              path.size() - name_start);
-
-  // expect "r.<x>.<z>.mca"
-  if (name.size() < 9 || name[0] != 'r' || name[1] != '.') {
-    return false;
-  }
-
-  const size_t dot1 = name.find('.', 2);
-  if (dot1 == std::string_view::npos) {
-    return false;
-  }
-  const size_t dot2 = name.find('.', dot1 + 1);
-  if (dot2 == std::string_view::npos) {
-    return false;
-  }
-  // must end with ".mca"
-  if (name.substr(dot2 + 1) != "mca") {
-    return false;
-  }
-
-  const std::string_view x_str = name.substr(2, dot1 - 2);
-  const std::string_view z_str = name.substr(dot1 + 1, dot2 - dot1 - 1);
-
-  // simple integer parse (avoids std::stoi and locale overhead)
-  auto parse_int = [](std::string_view s, i32* out) -> bool {
-    if (s.empty()) {
-      return false;
-    }
-    bool neg = false;
-    size_t i = 0;
-    if (s[0] == '-') {
-      neg = true;
-      ++i;
-    }
-    if (i == s.size()) {
-      return false;
-    }
-    i32 v = 0;
-    for (; i < s.size(); ++i) {
-      if (s[i] < '0' || s[i] > '9') {
-        return false;
-      }
-      v = v * 10 + (s[i] - '0');
-    }
-    *out = neg ? -v : v;
-    return true;
-  };
-
-  return parse_int(x_str, out_rx) && parse_int(z_str, out_rz);
 }
 
 }  // namespace region

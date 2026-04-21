@@ -147,7 +147,7 @@ constexpr const std::size_t kResetCodeLength = kStyleCodeLength;
 constexpr const std::size_t kRgbCodeLength = 20;
 
 inline constexpr const char* style_str(Style style) {
-  dcheck(static_cast<uint8_t>(style) <= static_cast<uint8_t>(Style::Strike));
+  DCHECK(static_cast<uint8_t>(style) <= static_cast<uint8_t>(Style::Strike));
   if (style == Style::Reset) {
     return kReset;
   }

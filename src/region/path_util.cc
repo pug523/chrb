@@ -23,19 +23,23 @@ WorldDirectoryStructure detect_world_structure(
     const std::string_view world_directory) {
   DCHECK(core::is_path_delimiter(world_directory.back()));
 
+  std::string ow_new(world_directory);
   std::string ne_new(world_directory);
   std::string end_new(world_directory);
+  ow_new.append(dimension_path_with_slash_new(Dimension::OverWorld));
   ne_new.append(dimension_path_with_slash_new(Dimension::Nether));
   end_new.append(dimension_path_with_slash_new(Dimension::End));
-  if (core::is_dir(ne_new) || core::is_dir(end_new)) {
+  if (core::is_dir(ow_new) || core::is_dir(ne_new) || core::is_dir(end_new)) {
     return WorldDirectoryStructure::New;
   }
 
+  std::string ow_old(world_directory);
   std::string ne_old(world_directory);
   std::string end_old(world_directory);
+  ow_old.append(dimension_path_with_slash_old(Dimension::OverWorld));
   ne_old.append(dimension_path_with_slash_old(Dimension::Nether));
   end_old.append(dimension_path_with_slash_old(Dimension::End));
-  if (core::is_dir(ne_old) || core::is_dir(end_old)) {
+  if (core::is_dir(ow_old) || core::is_dir(ne_old) || core::is_dir(end_old)) {
     return WorldDirectoryStructure::Old;
   }
 

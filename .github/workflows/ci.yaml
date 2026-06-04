@@ -71,7 +71,7 @@ jobs:
             --tests=y \
             --sanitizers=y \
             --toolchain=clang \
-            --stdlib="${{ matrix.stdlib }}"
+            --stdlib="${{ matrix.stdlib }}" \
             -p "${{ matrix.plat }}" \
             -a "${{ matrix.arch }}"
 

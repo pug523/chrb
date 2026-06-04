@@ -13,93 +13,94 @@ on:
 
 jobs:
   release:
+    name: Release (${{ matrix.plat }}-${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        cc: [clang]
+        cxx: [clang++]
+        os:
+          - ubuntu-24.04
+          - macos-26
+          - windows-2025-vs2026
         include:
           - os: ubuntu-24.04
             plat: linux
             arch: x86_64
             stdlib: libc++
-            suffix: linux-x86_64
+            archive: tar.gz
+          - os: macos-26
+            plat: macosx
+            arch: arm64
+            stdlib: libc++
             archive: tar.gz
           - os: windows-2025-vs2026
             plat: windows
             arch: x64
             stdlib: msvc
-            suffix: windows-x64
             archive: zip
-          - os: macos-26
-            plat: macosx
-            arch: arm64
-            stdlib: libc++
-            suffix: macos-arm64
-            archive: tar.gz
-      fail-fast: false
-    runs-on: ${{ matrix.os }}
-    name: release build (${{ matrix.suffix }})
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+      COLORTERM: 256color
+      XMAKE_COLORTERM: 256color
+      XMAKE_ROOT: y
+      basename: "chrb"
 
     steps:
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
-      - name: setup xmake
-        uses: xmake-io/github-action-setup-xmake@3a1a5dddfc7fa625d9a698738334bf55655a861a
-
-      - name: install llvm tools
-        uses: KyleMayes/install-llvm-action@ebc0426251bc40c7cd31162802432c68818ab8f0
+      - name: Setup build environment
+        uses: pug523/actions_collection/cxx_setup@ab4e73e94a554225a3655a302447818146648f46
         with:
-          # https://github.com/KyleMayes/install-llvm-action/blob/master/assets.json
-          version: "21.1.8"
+          os: ${{ runner.os }}
+          plat: ${{ matrix.plat }}
+          arch: ${{ matrix.arch }}
+          cc: ${{ matrix.cc }}
+          cxx: ${{ matrix.cxx }}
+          build_type: release
 
-      - name: configure
+      - name: Configure
         shell: bash
         run: |
-          if [[ "${{ matrix.plat }}" == "linux" ]]; then
-            # echo "LD_LIBRARY_PATH=$LLVM_PATH/lib:$LLVM_PATH/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
-            sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
-            sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
-          elif [[ "${{ matrix.plat }}" == "macosx" ]]; then
-            xcode-select --install || true
-            # echo "LLVM_LIB_DIR=$LLVM_PATH/lib" >> $GITHUB_ENV
-            # echo "DYLD_LIBRARY_PATH=$LLVM_LIB_DIR" >> $GITHUB_ENV
-            SDK=$(xcrun --show-sdk-path)
-            echo "SDKROOT=$SDK" >> $GITHUB_ENV
-            echo "LDFLAGS=-L$SDK/usr/lib" >> $GITHUB_ENV
-            echo "CXXFLAGS=-isysroot $SDK" >> $GITHUB_ENV
-          fi
-
           xmake config -c -y \
             -m release \
-            --toolchain=llvm \
+            --toolchain=clang \
             --unitybuild=y \
             --lto=y \
+            --stdlib="${{ matrix.stdlib }}" \
             -p "${{ matrix.plat }}" \
-            -a "${{ matrix.arch }}" \
-            --stdlib="${{ matrix.stdlib }}"
+            -a "${{ matrix.arch }}"
 
-      - name: build
+      - name: Build
         shell: bash
         run: |
           xmake build chrb
 
-      - name: package artifact
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ matrix.plat }}-${{ matrix.arch }}
+          path: build/${{ matrix.plat }}/${{ matrix.arch }}/**
+
+      - name: Package artifact
         shell: bash
         run: |
           mkdir -p dist
           cp LICENSE README.md dist/ 2>/dev/null || true
+          cp build/${{ matrix.plat }}/${{ matrix.arch }}/**/${{ env.basename }}* dist/
           if [[ "${{ matrix.plat }}" == "windows" ]]; then
-            cp build/${{ matrix.plat }}/${{ matrix.arch }}/**/chrb.exe dist/
-            cd dist && 7z a ../chrb-${{ matrix.suffix }}.zip *
+            cd dist && 7z a ../${{ env.basename }}-${{ matrix.plat }}-${{ matrix.arch }}.${{ matrix.archive }} *
           else
-            cp build/${{ matrix.plat }}/${{ matrix.arch }}/**/chrb dist/
-            cd dist && tar -czvf ../chrb-${{ matrix.suffix }}.tar.gz *
+            cd dist && tar -czvf ../${{ env.basename }}-${{ matrix.plat }}-${{ matrix.arch }}.${{ matrix.archive }} *
           fi
 
-      - name: upload artifact to release
+      - name: Upload artifacts to release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         with:
-          # files: chrb-${{ matrix.suffix }}.${{ matrix.archive }}
-          files: chrb-${{ matrix.suffix }}*
+          files: ${{ env.basename }}-${{ matrix.plat }}-${{ matrix.arch }}.${{ matrix.archive }}
           draft: true
           generate_release_notes: false
         env:

@@ -24,6 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        build_type: [debug, release]
         cc: [clang]
         cxx: [clang++]
         os:

@@ -9,7 +9,9 @@
 
 namespace app {
 
-enum class ArgStatus : u16 {
+using ArgStatusPacked = u16;
+
+enum class ArgStatus : ArgStatusPacked {
   Success = 0,
   PrintHelp = 1 << 0,
   PrintVersion = 1 << 1,
@@ -23,9 +25,8 @@ enum class ArgStatus : u16 {
   InvalidDestinationWorldStructureConfig = 1 << 9,
   WholeWorldRollbackNotAllowed = 1 << 10,
   InvalidNumThreads = 1 << 11,
+  InvalidToml = 1 << 12,
 };
-
-using ArgStatusPacked = u16;
 
 ArgStatusPacked parse_args(i32 argc,
                            char** argv,

@@ -18,9 +18,6 @@
 namespace region {
 
 struct RollbackConfig {
-  bool config_file_enabled = false;
-  std::string config_file_path = "chrb.toml";
-
   std::string src_world = "undefined";
   std::string dest_world = "undefined";
   std::string dim_str = "overworld";
@@ -48,5 +45,8 @@ struct RollbackConfig {
 };
 
 std::string format_rollback_config(const RollbackConfig& config);
+
+std::vector<ChunkPosition> parse_chunks(
+    const std::vector<std::vector<i32>>& chunks);
 
 }  // namespace region

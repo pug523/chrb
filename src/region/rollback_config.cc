@@ -6,6 +6,9 @@
 
 #include <format>
 #include <string>
+#include <vector>
+
+#include "region/chunk_position.h"
 
 namespace region {
 
@@ -41,12 +44,12 @@ std::string format_rollback_config(const RollbackConfig& config) {
 
 src_world = "{}"
 dest_world = "{}"
-dim = "{}"
-type = "{}"
+dimension = "{}"
+rollback_type = "{}"
 color = "{}"
 src_world_structure = "{}"
 dest_world_structure = "{}"
-chunks_list = {}
+chunks = {}
 min_x = {}
 max_x = {}
 min_z = {}
@@ -61,6 +64,21 @@ verbose = {}
       format_opt_int(config.min_x), format_opt_int(config.max_x),
       format_opt_int(config.min_z), format_opt_int(config.max_z),
       config.num_threads, config.verbose);
+}
+
+std::vector<ChunkPosition> parse_chunks(
+    const std::vector<std::vector<i32>>& chunks) {
+  std::vector<ChunkPosition> result;
+  result.resize(chunks.size());
+  for (size_t i = 0; i < chunks.size(); ++i) {
+    const std::vector<i32>& chunk = chunks[i];
+    if (chunk.size() != 2) {
+      continue;
+    }
+    result[i].x = chunk[0];
+    result[i].z = chunk[1];
+  }
+  return result;
 }
 
 }  // namespace region

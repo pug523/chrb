@@ -2,7 +2,7 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "app/args/parser.h"
+#include "app/args/arg_parser.h"
 
 #include <cstddef>
 #include <optional>
@@ -11,6 +11,7 @@
 #include <string_view>
 #include <utility>
 
+#include "app/toml/toml_parser.h"
 #include "core/check.h"
 #include "core/cli/console.h"
 #include "core/cli/log_prefix.h"
@@ -28,6 +29,29 @@ void ArgParser::add(ArgDef def) {
   DCHECK(!(def.required && !def.takes_value));
   defs_.push_back(std::move(def));
   matched_.push_back(false);
+}
+
+void ArgParser::add_builtin_args() {
+  add({
+      .long_name = "--help",
+      .short_name = "-h",
+      .meta = "",
+      .description = "print this help message",
+      .takes_value = false,
+      .required = false,
+      .on_match = [](std::string_view) {},
+  });
+
+  add({
+      .long_name = "--version",
+      .short_name = "-v",
+      .meta = "",
+      .description = "print version",
+      .takes_value = false,
+      .required = false,
+      .on_match = [](std::string_view) {},
+  });
+  handle_builtin_args_ = true;
 }
 
 std::optional<size_t> ArgParser::find_index(std::string_view token) const {
@@ -60,7 +84,7 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
 
     if (!idx.has_value()) {
       std::println(stderr, "{}unknown argument: '{}'",
-                   error_prefix(core::ColorMode::Never), key);
+                   error_prefix(core::ColorMode::Auto), key);
       result = ParseResult::UnknownArgument;
       continue;
     }
@@ -77,7 +101,7 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
         value = argv[++i];
       } else {
         std::println(stderr, "{}argument '{}' requires a value",
-                     error_prefix(core::ColorMode::Never), key);
+                     error_prefix(core::ColorMode::Auto), key);
         result = ParseResult::MissingValue;
         continue;
       }
@@ -89,18 +113,19 @@ ParseResult ArgParser::parse(i32 argc, char** argv) {
       // flag: --key=anything is an error
       if (eq_pos != std::string_view::npos) {
         std::println(stderr, "{}argument '{}' does not take a value",
-                     error_prefix(core::ColorMode::Never), key);
+                     error_prefix(core::ColorMode::Auto), key);
         continue;
       }
 
-      // short-circuit before on_match so side-effects are avoided
-      if (key == "--help" || key == "-h") {
-        print_help();
-        return ParseResult::PrintHelp;
-      }
-      if (key == "--version" || key == "-v") {
-        print_version();
-        return ParseResult::PrintVersion;
+      if (handle_builtin_args_) {
+        // short-circuit before on_match so side-effects are avoided
+        if (key == "--help" || key == "-h") {
+          print_help();
+          return ParseResult::PrintHelp;
+        } else if (key == "--version" || key == "-v") {
+          print_version();
+          return ParseResult::PrintVersion;
+        }
       }
 
       if (def.on_match) {
@@ -118,7 +143,7 @@ bool ArgParser::validate_required() const {
   for (size_t i = 0; i < defs_.size(); ++i) {
     if (defs_[i].required && !matched_[i]) {
       std::println(stderr, "{}required argument '{}' not provided",
-                   error_prefix(core::ColorMode::Never), defs_[i].long_name);
+                   error_prefix(core::ColorMode::Auto), defs_[i].long_name);
       ok = false;
     }
   }

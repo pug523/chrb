@@ -10,7 +10,7 @@
 #include <string_view>
 #include <system_error>
 
-#include "app/args/parser.h"
+#include "app/args/arg_parser.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "region/rollback_config.h"
@@ -87,7 +87,6 @@ bool parse_chunks(std::string_view str,
 ArgParser build_arg_parser(region::RollbackConfig* config) {
   ArgParser p("chrb", CHRB_PROJECT_VERSION,
               "=-=-= chunk rollback tool for minecraft =-=-=");
-
   p.add({
       .long_name = "--config",
       .short_name = "-C",
@@ -95,8 +94,8 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .description = "enable config toml file",
       .takes_value = false,
       .required = false,
-      .on_match =
-          [config](std::string_view) { config->config_file_enabled = true; },
+      // preprocess in out side of arg parser
+      .on_match = [](std::string_view) {},
   });
 
   p.add({
@@ -106,8 +105,8 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .description = "config file path (default: chrb.toml)",
       .takes_value = true,
       .required = false,
-      .on_match =
-          [config](std::string_view v) { config->config_file_path = v; },
+      // preprocess in out side of arg parser
+      .on_match = [](std::string_view) {},
   });
 
   p.add({
@@ -320,27 +319,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .on_match = [config](std::string_view) { config->verbose = true; },
   });
 
-  p.add({
-      .long_name = "--help",
-      .short_name = "-h",
-      .meta = "",
-      .description = "print this help message",
-      .takes_value = false,
-      .required = false,
-      // handled inside ArgParser
-      .on_match = [](std::string_view) {},
-  });
-
-  p.add({
-      .long_name = "--version",
-      .short_name = "-v",
-      .meta = "",
-      .description = "print version",
-      .takes_value = false,
-      .required = false,
-      // handled inside ArgParser
-      .on_match = [](std::string_view) {},
-  });
+  p.add_builtin_args();
 
   return p;
 }

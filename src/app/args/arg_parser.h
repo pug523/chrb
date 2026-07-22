@@ -47,6 +47,7 @@ class ArgParser {
                      std::string_view tagline = "");
 
   void add(ArgDef def);
+  void add_builtin_args();
 
   // run the parse, returns ok on success
   // on validationerror, caller should call validate() results separately
@@ -66,6 +67,7 @@ class ArgParser {
   std::string_view tagline_;
   std::vector<ArgDef> defs_;
   std::vector<bool> matched_;
+  bool handle_builtin_args_ = false;
 };
 
 }  // namespace app

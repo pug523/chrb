@@ -64,6 +64,8 @@ local function source_files()
     return files
 end
 
+add_requires("toml11 v4.4.0", { system = false, configs = stdlib_config() })
+
 if has_config("tests") then
   add_requires("catch2 v3.13.0", { system = false, configs = stdlib_config() })
 end
@@ -249,6 +251,7 @@ target("chrb")
   set_kind(build_kind)
   add_files("src/app/**.cc")
   add_deps(chrb_modules)
+  add_packages("toml11")
   set_default(true)
 target_end()
 

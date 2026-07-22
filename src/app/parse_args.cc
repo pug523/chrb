@@ -7,8 +7,9 @@
 #include <print>
 #include <thread>
 
+#include "app/args/arg_parser.h"
 #include "app/args/build_parser.h"
-#include "app/args/parser.h"
+#include "app/toml/toml_parser.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "region/dimension.h"
@@ -18,10 +19,53 @@
 
 namespace app {
 
+namespace {
+
+TomlParseStatus load_toml_if_needed(i32 argc,
+                                    char** argv,
+                                    region::RollbackConfig* config) {
+  bool config_file_enabled = false;
+  bool config_file_specified = false;
+  bool path_next = false;
+  std::string_view config_path = "chrb.toml";
+  for (i32 i = 0; i < argc; ++i) {
+    const std::string_view arg = argv[i];
+    if (path_next) {
+      config_path = arg;
+      config_file_specified = true;
+      path_next = false;
+    } else if (arg == "-c" || arg == "--config") {
+      config_file_enabled = true;
+    } else if (arg == "--config") {
+      path_next = true;
+    }
+  }
+
+  if (config_file_enabled) {
+    return parse_toml_config(std::string(config_path), config);
+  } else if (config_file_specified) {
+    std::println(
+        stderr,
+        R"({}config file is specified, but config ("--config" or "-c") is not enabled.)",
+        core::warn_prefix(config->color_mode));
+  }
+  return TomlParseStatus::Success;
+}
+
+}  // namespace
+
 ArgStatusPacked parse_args(i32 argc,
                            char** argv,
                            region::RollbackConfig* config) {
   ArgParser parser = build_arg_parser(config);
+  const TomlParseStatus toml_status = load_toml_if_needed(argc, argv, config);
+  if (toml_status != TomlParseStatus::Success) {
+    std::print(stderr, "{}failed to parse toml config\n\n",
+               core::error_prefix(config->color_mode));
+    parser.print_help();
+    return static_cast<ArgStatusPacked>(ArgStatus::InvalidToml);
+  }
+
   const ParseResult pr = parser.parse(argc, argv);
 
   if (pr == ParseResult::PrintHelp) {
@@ -34,8 +78,8 @@ ArgStatusPacked parse_args(i32 argc,
   const bool required_ok = parser.validate_required();
   if (pr != ParseResult::Ok || !required_ok ||
       vs != static_cast<ArgStatusPacked>(ArgStatus::Success)) {
-    std::println(stderr, "{}failed to parse commandline arguments",
-                 core::error_prefix(config->color_mode));
+    std::print(stderr, "{}failed to parse commandline arguments\n\n",
+               core::error_prefix(config->color_mode));
     parser.print_help();
     return vs | static_cast<ArgStatusPacked>(ArgStatus::UnknownArgument);
   }

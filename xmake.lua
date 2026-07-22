@@ -47,9 +47,9 @@ end
 local function stdlib_config()
     if is_clang and not is_plat("windows") and has_config("stdlib") then
         local std = get_config("stdlib")
-        return { cxxflags = "-stdlib=" .. std, ldflags = "-stdlib=" .. std }
+        return { cxxflags = "-stdlib=" .. std, ldflags = "-stdlib=" .. std, exceptions = "none" }
     end
-    return { }
+    return { exceptions = "none" }
 end
 
 local subdirs = "src tests"

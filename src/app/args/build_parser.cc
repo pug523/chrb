@@ -33,15 +33,15 @@ bool safe_stoi(std::string_view str, i32* dest) {
   }
   if (ec == std::errc::invalid_argument) {
     std::println(stderr, "{}invalid format: {} (expected number)",
-                 error_prefix(core::ColorMode::Never), str);
+                 error_prefix(core::ColorMode::Auto), str);
     return false;
   } else if (ec == std::errc::result_out_of_range) {
     std::println(stderr, "{}out of range: {}",
-                 error_prefix(core::ColorMode::Never), str);
+                 error_prefix(core::ColorMode::Auto), str);
     return false;
   } else {
     std::println(stderr, "{}unknown error: {} (expected number)",
-                 error_prefix(core::ColorMode::Never), str);
+                 error_prefix(core::ColorMode::Auto), str);
     return false;
   }
 }
@@ -89,7 +89,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
               "=-=-= chunk rollback tool for minecraft =-=-=");
   p.add({
       .long_name = "--config",
-      .short_name = "-C",
+      .short_name = "-c",
       .meta = "",
       .description = "enable config toml file",
       .takes_value = false,
@@ -210,9 +210,11 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            if (!safe_stoi(v, &*config->min_x)) {
+            i32 temp;
+            if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }
+            config->min_x = temp;
           },
   });
 
@@ -225,9 +227,11 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            if (!safe_stoi(v, &*config->max_x)) {
+            i32 temp;
+            if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }
+            config->max_x = temp;
           },
   });
 
@@ -240,9 +244,11 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            if (!safe_stoi(v, &*config->min_z)) {
+            i32 temp;
+            if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }
+            config->min_z = temp;
           },
   });
 
@@ -255,9 +261,11 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            if (!safe_stoi(v, &*config->max_z)) {
+            i32 temp;
+            if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }
+            config->max_z = temp;
           },
   });
 

@@ -35,7 +35,7 @@ TomlParseStatus parse_toml_config(const std::string& config_path,
     return TomlParseStatus::RollbackConfigIsNotTable;
   }
 
-  auto rc = data.at("rollback_config").as_table();
+  auto rc = data.at("rollback_config");
 
   if (rc.at("src_world").is_string()) {
     dest->src_world = rc["src_world"].as_string();
@@ -59,9 +59,9 @@ TomlParseStatus parse_toml_config(const std::string& config_path,
     dest->src_world_structure_str = rc["dest_world_structure"].as_string();
   }
   if (rc.at("chunks").is_array()) {
-    dest->chunks =
-        region::parse_chunks(toml::find_or<std::vector<std::vector<i32>>>(
-            data, "rollback_config.chunks", {}));
+    const auto raw_chunks =
+        toml::find<std::vector<std::vector<i32>>>(rc, "chunks");
+    dest->chunks = region::parse_chunks(raw_chunks);
   }
   if (rc.at("min_x").is_integer()) {
     dest->min_x = rc["min_x"].as_integer();

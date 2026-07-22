@@ -36,7 +36,7 @@ TomlParseStatus load_toml_if_needed(i32 argc,
       path_next = false;
     } else if (arg == "-c" || arg == "--config") {
       config_file_enabled = true;
-    } else if (arg == "--config") {
+    } else if (arg == "--config-path") {
       path_next = true;
     }
   }
@@ -59,6 +59,12 @@ ArgStatusPacked parse_args(i32 argc,
                            region::RollbackConfig* config) {
   ArgParser parser = build_arg_parser(config);
   const TomlParseStatus toml_status = load_toml_if_needed(argc, argv, config);
+
+  if (config->verbose) {
+    std::print("loaded from toml: \n{}",
+               region::format_rollback_config(*config));
+  }
+
   if (toml_status != TomlParseStatus::Success) {
     std::print(stderr, "{}failed to parse toml config\n\n",
                core::error_prefix(config->color_mode));

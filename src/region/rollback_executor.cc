@@ -8,12 +8,14 @@
 #include <chrono>
 #include <cstddef>
 #include <format>
+#include <limits>
 #include <mutex>
 #include <print>
 #include <queue>
 #include <string>
 #include <string_view>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -22,10 +24,12 @@
 #include "core/core.h"
 #include "core/file_util.h"
 #include "core/mem/mapped_file.h"
+#include "region/chunk_position.h"
 #include "region/dimension.h"
 #include "region/path_util.h"
 #include "region/processor/chunk_processor.h"
 #include "region/processor/full_region_processor.h"
+#include "region/region_position.h"
 #include "region/rollback_config.h"
 #include "region/rollback_task.h"
 #include "region/rollback_type.h"

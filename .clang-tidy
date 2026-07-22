@@ -49,6 +49,7 @@ Checks: >
   readability-identifier-naming,
   readability-redundant-member-init
 HeaderFilterRegex: '^.*(src|tests)[\\/].*$'
+ExcludeHeaderFilterRegex: '^.*(third_party/).*$'
 SystemHeaders:    false
 WarningsAsErrors: '*'
 ExtraArgsBefore:

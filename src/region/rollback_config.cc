@@ -4,10 +4,12 @@
 
 #include "region/rollback_config.h"
 
+#include <cstddef>
 #include <format>
 #include <string>
 #include <vector>
 
+#include "core/core.h"
 #include "core/format_util.h"
 #include "region/chunk_position.h"
 

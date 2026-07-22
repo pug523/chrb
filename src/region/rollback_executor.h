@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "core/core.h"
-#include "region/chunk_range.h"
 #include "region/dimension.h"
 #include "region/region_position.h"
 #include "region/rollback_config.h"

@@ -8,6 +8,9 @@
 #include <string>
 
 #include "core/format_util.h"
+#include "region/chunk_range.h"
+#include "region/dimension.h"
+#include "region/rollback_type.h"
 
 namespace region {
 

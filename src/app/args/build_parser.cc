@@ -9,10 +9,12 @@
 #include <print>
 #include <string_view>
 #include <system_error>
+#include <vector>
 
 #include "app/args/arg_parser.h"
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
+#include "region/chunk_position.h"
 #include "region/rollback_config.h"
 
 namespace app {

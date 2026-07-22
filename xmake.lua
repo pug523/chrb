@@ -64,7 +64,7 @@ local function source_files()
     return files
 end
 
-add_requires("toml11 v4.4.0", { system = false, configs = stdlib_config() })
+add_requires("toml++ v3.4.0", { system = false, configs = table.join(stdlib_config(), { header_only = true }) })
 
 if has_config("tests") then
   add_requires("catch2 v3.13.0", { system = false, configs = stdlib_config() })
@@ -72,37 +72,57 @@ end
 
 -- Tasks
 task("format")
-    set_menu({ usage = "xmake format", description = "format source code" })
-    on_run( function ()
-        local files = source_files()
-        if #files > 0 then
-            os.runv("clang-format", table.join({ "--fail-on-incomplete-format", "--ferror-limit=1", "--sort-includes", "-i" }, files))
-        end
-        os.run("uv sync")
-        print(os.iorun("uv run scripts/header_license.py"):trim())
-    end)
+set_menu({ usage = "xmake format", description = "format source code" })
+on_run(function()
+  local files = source_files()
+  if #files > 0 then
+    os.execv(
+      "clang-format",
+      table.join({
+        "--fail-on-incomplete-format",
+        "--ferror-limit=1",
+        "--sort-includes",
+        "-i",
+      }, files)
+    )
+  end
+  os.exec("uv sync")
+  os.exec("uv run scripts/header_license.py")
+end)
 task_end()
 
 task("tidy")
-    set_menu({ usage = "xmake tidy", description = "Run clang-tidy --fix" })
-    on_run( function ()
-        local files = source_files()
-        if #files > 0 then
-          os.runv("clang-tidy", table.join({ "--use-color", "--fix", "--config-file=./.clang-tidy", }, files))
-        end
-    end)
+set_menu({ usage = "xmake tidy", description = "Run clang-tidy --fix" })
+on_run(function()
+  local files = source_files()
+  if #files > 0 then
+    os.execv(
+      "clang-tidy",
+      table.join(
+        { "--use-color", "--fix", "--config-file=./.clang-tidy" },
+        files
+      )
+    )
+  end
+end)
 task_end()
 
 task("lint")
-    set_menu({ usage = "xmake lint", description = "lint using cpplint & clang-format" })
-    on_run( function ()
-        os.run("uv sync")
-        print(os.iorun("uv run cpplint --recursive " .. subdirs):trim())
-        local files = source_files()
-        if #files > 0 then
-            os.runv("clang-format", table.join({ "--dry-run", "--fail-on-incomplete-format", "-i" }, files))
-        end
-    end)
+set_menu({
+  usage = "xmake lint",
+  description = "lint using cpplint & clang-format",
+})
+on_run(function()
+  os.exec("uv sync")
+  os.execv("uv", table.join({ "run", "cpplint", "--recursive", "src/" }))
+  local files = source_files()
+  if #files > 0 then
+    os.execv(
+      "clang-format",
+      table.join({ "--dry-run", "--fail-on-incomplete-format", "-i" }, files)
+    )
+  end
+end)
 task_end()
 
 -- Events
@@ -251,7 +271,7 @@ target("chrb")
   set_kind(build_kind)
   add_files("src/app/**.cc")
   add_deps(chrb_modules)
-  add_packages("toml11")
+  add_packages("toml++")
   set_default(true)
 target_end()
 

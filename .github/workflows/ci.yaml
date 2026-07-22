@@ -53,6 +53,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          submodules: recursive
 
       - name: Setup build environment
         uses: pug523/actions_collection/cxx_setup@ab4e73e94a554225a3655a302447818146648f46

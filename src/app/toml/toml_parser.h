@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_set>
 
+#include "core/core.h"
 #include "region/rollback_config.h"
 
 namespace app {
@@ -14,8 +15,9 @@ namespace app {
 enum class TomlParseStatus : u8 {
   Success = 0,
   FileNotFound = 1 << 0,
-  RollbackConfigIsNotContained = 1 << 1,
-  RollbackConfigIsNotTable = 1 << 2,
+  ParseError = 1 << 1,
+  RollbackConfigIsNotContained = 1 << 2,
+  RollbackConfigIsNotTable = 1 << 3,
 };
 
 TomlParseStatus parse_toml_config(

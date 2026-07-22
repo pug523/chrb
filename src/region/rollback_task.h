@@ -20,6 +20,14 @@ enum class RollbackMode : u8 {
   Partial,
 };
 
+inline const char* mode_to_str(RollbackMode m) {
+  switch (m) {
+    case RollbackMode::FullCopy: return "full_copy";
+    case RollbackMode::Partial: return "partial";
+    default: DCHECK(false); return "unknown";
+  }
+}
+
 struct RollbackTask {
   RegionPosition region;
   std::vector<ChunkPosition> target_chunks;
@@ -28,5 +36,7 @@ struct RollbackTask {
   RollbackType type;
   RollbackMode mode;
 };
+
+std::string dump_task(const RollbackTask& task);
 
 }  // namespace region

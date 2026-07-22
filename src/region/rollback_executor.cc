@@ -453,6 +453,22 @@ void RollbackExecutor::start_workers() {
   DCHECK(config_->num_threads <=
          static_cast<i32>(std::thread::hardware_concurrency()));
 
+  if (config_->dry_run) {
+    std::print("{}doing dry run...\n\n",
+               core::log_prefix(config_->color_mode, core::LogLevel::Info));
+    std::print("{}scheduled tasks:\n\n",
+               core::log_prefix(config_->color_mode, core::LogLevel::Info));
+    while (true) {
+      if (region_queue_.empty()) {
+        break;
+      }
+      const RollbackTask task = region_queue_.front();
+      region_queue_.pop();
+      std::println("{}", dump_task(task));
+    }
+    return;
+  }
+
   if (region_queue_.empty()) {
     return;
   }

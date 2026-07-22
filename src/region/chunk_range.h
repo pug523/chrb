@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "core/core.h"
 
 namespace region {
@@ -14,5 +16,7 @@ struct ChunkRange {
   i32 max_x;
   i32 max_z;
 };
+
+std::string dump_chunk_range(const ChunkRange& chunk_range);
 
 }  // namespace region

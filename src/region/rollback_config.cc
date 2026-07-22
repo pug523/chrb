@@ -37,7 +37,7 @@ std::string format_opt_int(std::optional<i32> i) {
 
 }  // namespace
 
-std::string format_rollback_config(const RollbackConfig& config) {
+std::string dump_rollback_config(const RollbackConfig& config) {
   return std::format(
       R"(
 [rollback_config]
@@ -55,6 +55,10 @@ max_x = {}
 min_z = {}
 max_z = {}
 num_threads = {}
+allow_whole_rollback = {}
+bulk_copy = {}
+dry_run = {}
+silen = {}
 verbose = {}
 
 )",
@@ -63,7 +67,8 @@ verbose = {}
       config.dest_world_structure_str, format_chunks(config.chunks),
       format_opt_int(config.min_x), format_opt_int(config.max_x),
       format_opt_int(config.min_z), format_opt_int(config.max_z),
-      config.num_threads, config.verbose);
+      config.num_threads, config.allow_whole_rollback, config.bulk_copy,
+      config.dry_run, config.silent, config.verbose);
 }
 
 std::vector<ChunkPosition> parse_chunks(

@@ -54,6 +54,11 @@ void ArgParser::add_builtin_args() {
   handle_builtin_args_ = true;
 }
 
+void ArgParser::provided_keys(
+    const std::unordered_set<std::string>&& provided_keys) {
+  provided_keys_ = provided_keys;
+}
+
 std::optional<size_t> ArgParser::find_index(std::string_view token) const {
   for (size_t i = 0; i < defs_.size(); ++i) {
     const ArgDef& def = defs_[i];
@@ -142,9 +147,11 @@ bool ArgParser::validate_required() const {
   bool ok = true;
   for (size_t i = 0; i < defs_.size(); ++i) {
     if (defs_[i].required && !matched_[i]) {
-      std::println(stderr, "{}required argument '{}' not provided",
-                   error_prefix(core::ColorMode::Auto), defs_[i].long_name);
-      ok = false;
+      if (provided_keys_.contains(std::string(defs_[i].long_name))) {
+        std::println(stderr, "{}required argument '{}' not provided",
+                     error_prefix(core::ColorMode::Auto), defs_[i].long_name);
+        ok = false;
+      }
     }
   }
   return ok;

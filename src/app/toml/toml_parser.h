@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_set>
+
 #include "region/rollback_config.h"
 
 namespace app {
@@ -15,7 +18,9 @@ enum class TomlParseStatus : u8 {
   RollbackConfigIsNotTable = 1 << 2,
 };
 
-TomlParseStatus parse_toml_config(const std::string& config_path,
-                                  region::RollbackConfig* dest);
+TomlParseStatus parse_toml_config(
+    const std::string& config_path,
+    region::RollbackConfig* dest,
+    std::unordered_set<std::string>* provided_keys_for_arg_parser);
 
 }  // namespace app

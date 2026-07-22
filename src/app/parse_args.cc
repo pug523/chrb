@@ -6,6 +6,7 @@
 
 #include <print>
 #include <thread>
+#include <unordered_set>
 
 #include "app/args/arg_parser.h"
 #include "app/args/build_parser.h"
@@ -21,9 +22,11 @@ namespace app {
 
 namespace {
 
-TomlParseStatus load_toml_if_needed(i32 argc,
-                                    char** argv,
-                                    region::RollbackConfig* config) {
+TomlParseStatus load_toml_if_needed(
+    i32 argc,
+    char** argv,
+    region::RollbackConfig* config,
+    std::unordered_set<std::string>* provided_keys_for_arg_parser) {
   bool config_file_enabled = false;
   bool config_file_specified = false;
   bool path_next = false;
@@ -42,7 +45,8 @@ TomlParseStatus load_toml_if_needed(i32 argc,
   }
 
   if (config_file_enabled) {
-    return parse_toml_config(std::string(config_path), config);
+    return parse_toml_config(std::string(config_path), config,
+                             provided_keys_for_arg_parser);
   } else if (config_file_specified) {
     std::println(
         stderr,
@@ -58,11 +62,13 @@ ArgStatusPacked parse_args(i32 argc,
                            char** argv,
                            region::RollbackConfig* config) {
   ArgParser parser = build_arg_parser(config);
-  const TomlParseStatus toml_status = load_toml_if_needed(argc, argv, config);
+  std::unordered_set<std::string> provided_keys_for_arg_parser;
+  const TomlParseStatus toml_status =
+      load_toml_if_needed(argc, argv, config, &provided_keys_for_arg_parser);
+  parser.provided_keys(std::move(provided_keys_for_arg_parser));
 
   if (config->verbose) {
-    std::print("loaded from toml: \n{}",
-               region::format_rollback_config(*config));
+    std::print("loaded from toml: \n{}", region::dump_rollback_config(*config));
   }
 
   if (toml_status != TomlParseStatus::Success) {

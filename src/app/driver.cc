@@ -34,7 +34,7 @@ i32 rollback(i32 argc, char** argv) {
   const ArgStatusPacked arg_result = parse_args(argc, argv, &config);
 
   if (config.verbose) {
-    std::print("{}", region::format_rollback_config(config));
+    std::print("{}", region::dump_rollback_config(config));
   }
 
   if (arg_status_contains(arg_result, ArgStatus::PrintHelp) ||

@@ -8,6 +8,7 @@
 #include <functional>
 #include <optional>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 #include "core/core.h"
@@ -49,6 +50,8 @@ class ArgParser {
   void add(ArgDef def);
   void add_builtin_args();
 
+  void provided_keys(const std::unordered_set<std::string>&& provided_keys);
+
   // run the parse, returns ok on success
   // on validationerror, caller should call validate() results separately
   ParseResult parse(i32 argc, char** argv);
@@ -67,6 +70,7 @@ class ArgParser {
   std::string_view tagline_;
   std::vector<ArgDef> defs_;
   std::vector<bool> matched_;
+  std::unordered_set<std::string> provided_keys_;
   bool handle_builtin_args_ = false;
 };
 

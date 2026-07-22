@@ -17,34 +17,39 @@
 
 namespace region {
 
+// Note: when update this struct update also `src/app/args/build_parser.cc`,
+// `src/app/toml/toml_parser.cc` and `region/rollback_config.cc`
 struct RollbackConfig {
   std::string src_world = "undefined";
   std::string dest_world = "undefined";
   std::string dim_str = "overworld";
+  Dimension dimension = Dimension::OverWorld;
   std::string type_str = "all";
+  RollbackType type = RollbackType::All;
   std::string color_str = "auto";
+  core::ColorMode color_mode = core::ColorMode::Auto;
   std::string src_world_structure_str = "auto";
+  WorldDirectoryStructureConfig src_world_structure =
+      WorldDirectoryStructureConfig::Auto;
   std::string dest_world_structure_str = "auto";
+  WorldDirectoryStructureConfig dest_world_structure =
+      WorldDirectoryStructureConfig::Auto;
+
   std::vector<ChunkPosition> chunks;
   std::optional<i32> min_x = std::nullopt;
   std::optional<i32> max_x = std::nullopt;
   std::optional<i32> min_z = std::nullopt;
   std::optional<i32> max_z = std::nullopt;
+
   i32 num_threads = static_cast<i32>(std::thread::hardware_concurrency()) / 2;
-  Dimension dimension = Dimension::OverWorld;
-  RollbackType type = RollbackType::All;
-  core::ColorMode color_mode = core::ColorMode::Auto;
-  WorldDirectoryStructureConfig src_world_structure =
-      WorldDirectoryStructureConfig::Auto;
-  WorldDirectoryStructureConfig dest_world_structure =
-      WorldDirectoryStructureConfig::Auto;
   bool allow_whole_rollback = false;
   bool bulk_copy = false;
+  bool dry_run = false;
   bool silent = false;
   bool verbose = false;
 };
 
-std::string format_rollback_config(const RollbackConfig& config);
+std::string dump_rollback_config(const RollbackConfig& config);
 
 std::vector<ChunkPosition> parse_chunks(
     const std::vector<std::vector<i32>>& chunks);

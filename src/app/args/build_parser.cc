@@ -188,9 +188,8 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   p.add({
       .long_name = "--chunks",
       .short_name = "-C",
-      .meta = "<x,z;x,z...>",
-      .description =
-          "comma/semicolon-separated chunk positions (e.g. 10,20;-5,15)",
+      .meta = "<\"x0.z0, x1.z1, ...\">",
+      .description = "chunk positions to rollback (e.g. \"10.20, -5.15\")",
       .takes_value = true,
       .required = false,
       .on_match =
@@ -305,6 +304,16 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .takes_value = false,
       .required = false,
       .on_match = [config](std::string_view) { config->bulk_copy = true; },
+  });
+
+  p.add({
+      .long_name = "--dry-run",
+      .short_name = "",
+      .meta = "",
+      .description = "only print scheduled chunks without executing rollback",
+      .takes_value = false,
+      .required = false,
+      .on_match = [config](std::string_view) { config->dry_run = true; },
   });
 
   p.add({

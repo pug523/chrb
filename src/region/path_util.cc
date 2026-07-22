@@ -26,9 +26,12 @@ WorldDirectoryStructure detect_world_structure(
   std::string ow_new(world_directory);
   std::string ne_new(world_directory);
   std::string end_new(world_directory);
-  ow_new.append(dimension_path_with_slash_new(Dimension::OverWorld));
-  ne_new.append(dimension_path_with_slash_new(Dimension::Nether));
-  end_new.append(dimension_path_with_slash_new(Dimension::End));
+  ow_new.append(dimension_path_with_slash_new(Dimension::OverWorld))
+      .append(type_path(RollbackType::Region));
+  ne_new.append(dimension_path_with_slash_new(Dimension::Nether))
+      .append(type_path(RollbackType::Region));
+  end_new.append(dimension_path_with_slash_new(Dimension::End))
+      .append(type_path(RollbackType::Region));
   if (core::is_dir(ow_new) || core::is_dir(ne_new) || core::is_dir(end_new)) {
     return WorldDirectoryStructure::New;
   }
@@ -36,9 +39,12 @@ WorldDirectoryStructure detect_world_structure(
   std::string ow_old(world_directory);
   std::string ne_old(world_directory);
   std::string end_old(world_directory);
-  ow_old.append(dimension_path_with_slash_old(Dimension::OverWorld));
-  ne_old.append(dimension_path_with_slash_old(Dimension::Nether));
-  end_old.append(dimension_path_with_slash_old(Dimension::End));
+  ow_old.append(dimension_path_with_slash_old(Dimension::OverWorld))
+      .append(type_path(RollbackType::Region));
+  ne_old.append(dimension_path_with_slash_old(Dimension::Nether))
+      .append(type_path(RollbackType::Region));
+  end_old.append(dimension_path_with_slash_old(Dimension::End))
+      .append(type_path(RollbackType::Region));
   if (core::is_dir(ow_old) || core::is_dir(ne_old) || core::is_dir(end_old)) {
     return WorldDirectoryStructure::Old;
   }
@@ -46,12 +52,15 @@ WorldDirectoryStructure detect_world_structure(
   std::string ow_paper(world_directory);
   std::string ne_paper(world_directory);
   std::string end_paper(world_directory);
-  ow_paper.append(dimension_path_with_slash_paper(Dimension::OverWorld));
-  ne_paper.append(dimension_path_with_slash_paper(Dimension::Nether));
-  end_paper.append(dimension_path_with_slash_paper(Dimension::End));
+  ow_paper.append(dimension_path_with_slash_paper(Dimension::OverWorld))
+      .append(type_path(RollbackType::Region));
+  ne_paper.append(dimension_path_with_slash_paper(Dimension::Nether))
+      .append(type_path(RollbackType::Region));
+  end_paper.append(dimension_path_with_slash_paper(Dimension::End))
+      .append(type_path(RollbackType::Region));
   if (core::is_dir(ow_paper) || core::is_dir(ne_paper) ||
       core::is_dir(end_paper)) {
-    return WorldDirectoryStructure::Old;
+    return WorldDirectoryStructure::Paper;
   }
 
   return WorldDirectoryStructure::Unknown;

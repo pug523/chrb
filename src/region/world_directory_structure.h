@@ -41,4 +41,26 @@ inline WorldDirectoryStructureConfig str_to_world_dir_structure(
   }
 }
 
+inline const char* world_dir_structure_config_to_str(
+    const WorldDirectoryStructureConfig c) {
+  using W = WorldDirectoryStructureConfig;
+  switch (c) {
+    case W::Auto: return "auto";
+    case W::New: return "new";
+    case W::Old: return "old";
+    case W::Paper: return "paper";
+    case W::Unknown: return "unknown";
+  }
+}
+
+inline const char* world_dir_structure_to_str(const WorldDirectoryStructure s) {
+  using W = WorldDirectoryStructure;
+  switch (s) {
+    case W::New: return "new";
+    case W::Old: return "old";
+    case W::Paper: return "paper";
+    case W::Unknown: return "unknown";
+  }
+}
+
 }  // namespace region

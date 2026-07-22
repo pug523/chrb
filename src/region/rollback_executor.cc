@@ -34,6 +34,7 @@
 #include "region/rollback_config.h"
 #include "region/rollback_task.h"
 #include "region/rollback_type.h"
+#include "region/world_directory_structure.h"
 
 namespace region {
 
@@ -84,6 +85,23 @@ void RollbackExecutor::start() {
   if (!config_->silent) {
     std::println("{}starting rollback...",
                  core::info_prefix(config_->color_mode));
+  }
+
+  if (config_->verbose || config_->dry_run) {
+    if (config_->src_world_structure == WorldDirectoryStructureConfig::Auto) {
+      WorldDirectoryStructure src_structure =
+          detect_world_structure(config_->src_world);
+      std::println("{}detected src world structure: {}",
+                   core::log_prefix(config_->color_mode, core::LogLevel::Info),
+                   world_dir_structure_to_str(src_structure));
+    }
+    if (config_->dest_world_structure == WorldDirectoryStructureConfig::Auto) {
+      WorldDirectoryStructure dest_structure =
+          detect_world_structure(config_->dest_world);
+      std::println("{}detected dest world structure: {}",
+                   core::log_prefix(config_->color_mode, core::LogLevel::Info),
+                   world_dir_structure_to_str(dest_structure));
+    }
   }
 
   start_time_ = std::chrono::steady_clock::now();

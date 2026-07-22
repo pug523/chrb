@@ -85,8 +85,8 @@ dest_world = "/path/to/my_world"
 dimension = "nether"
 rollback_type = "all"
 color = "auto"
-src_world_structure = "old"
-dest_world_structure = "old"
+src_world_structure = "auto"
+dest_world_structure = "auto"
 chunks = [
   [3, 4],
   [-35, -24],
@@ -189,6 +189,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md).
 - 1.21.1 - Fabric
 - 1.21.11 - Fabric
 - 26.1 - Fabric
+- 26.2 - Fabric
 
 ## License
 Copyright &copy; 2026 pugur  

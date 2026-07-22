@@ -24,7 +24,7 @@
 
 namespace core {
 
-bool MappedFile::open(std::string_view path, size_t min_size) {
+bool MappedFile::open(std::string_view path, size_t min_size, ColorMode color) {
   close();
   path_ = path;
 
@@ -77,8 +77,8 @@ bool MappedFile::open(std::string_view path, size_t min_size) {
 #else
   fd_ = ::open(path_.c_str(), O_RDWR);
   if (fd_ < 0) {
-    std::println(stderr, "{}failed to open the file: {}",
-                 error_prefix(ColorMode::Never), path);
+    std::println(stderr, "{}failed to open the file: {}", error_prefix(color),
+                 path);
     return false;
   }
 
@@ -87,7 +87,7 @@ bool MappedFile::open(std::string_view path, size_t min_size) {
     ::close(fd_);
     fd_ = -1;
     std::println(stderr, "{}failed to get the attributes for the file: {}",
-                 error_prefix(ColorMode::Never), path);
+                 error_prefix(color), path);
     return false;
   }
   size_ = static_cast<size_t>(st.st_size);
@@ -97,7 +97,7 @@ bool MappedFile::open(std::string_view path, size_t min_size) {
       ::close(fd_);
       fd_ = -1;
       std::println(stderr, "{}failed to truncate the file: {}",
-                   error_prefix(ColorMode::Never), path);
+                   error_prefix(color), path);
       return false;
     }
     size_ = min_size;
@@ -110,7 +110,7 @@ bool MappedFile::open(std::string_view path, size_t min_size) {
     ::close(fd_);
     fd_ = -1;
     std::println(stderr, "{}failed to map the file to memory: {}",
-                 error_prefix(ColorMode::Never), path);
+                 error_prefix(color), path);
     return false;
   }
 #endif

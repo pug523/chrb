@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "core/check.h"
+#include "core/cli/log_prefix.h"
 #include "core/core.h"
 
 namespace core {
@@ -24,7 +25,9 @@ class MappedFile {
   MappedFile(MappedFile&&) = default;
   MappedFile& operator=(MappedFile&&) = default;
 
-  bool open(std::string_view path, size_t min_size = 0);
+  bool open(std::string_view path,
+            size_t min_size = 0,
+            ColorMode color = ColorMode::Never);
   void close();
 
   bool resize(size_t new_size);

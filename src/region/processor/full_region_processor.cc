@@ -17,6 +17,7 @@
 #include "core/core.h"
 #include "core/file_util.h"
 #include "core/mem/mapped_file.h"
+#include "region/mca_util.h"
 #include "region/rollback_config.h"
 
 #if CHRB_BUILD_FLAG(IS_OS_WIN)
@@ -78,7 +79,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
                                       const std::string_view src,
                                       const std::string_view dest) {
   core::MappedFile src_map;
-  if (!src_map.open(src)) [[unlikely]] {
+  if (!src_map.open(src, kMcaHeaderSize, config_->color_mode)) [[unlikely]] {
     std::println(stderr, "{}failed to open src: {} (in {},{})",
                  core::error_prefix(config_->color_mode), src, rx, rz);
     return false;
@@ -118,7 +119,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
   }
 
   core::MappedFile tmp_map;
-  if (!tmp_map.open(tmp, file_size)) [[unlikely]] {
+  if (!tmp_map.open(tmp, file_size, config_->color_mode)) [[unlikely]] {
     std::println(stderr, "{}failed to open tmp: {} (in {},{})",
                  core::error_prefix(config_->color_mode), tmp, rx, rz);
     return false;

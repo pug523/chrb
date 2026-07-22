@@ -26,6 +26,7 @@
 #include "core/mem/mapped_file.h"
 #include "region/chunk_position.h"
 #include "region/dimension.h"
+#include "region/mca_util.h"
 #include "region/path_util.h"
 #include "region/processor/chunk_processor.h"
 #include "region/processor/full_region_processor.h"
@@ -457,20 +458,19 @@ void RollbackExecutor::start_workers() {
   DCHECK(config_->num_threads <=
          static_cast<i32>(std::thread::hardware_concurrency()));
 
-  if (config_->dry_run) {
-    std::print("{}doing dry run...\n\n",
-               core::log_prefix(config_->color_mode, core::LogLevel::Info));
-    std::print("{}scheduled tasks:\n\n",
-               core::log_prefix(config_->color_mode, core::LogLevel::Info));
-    while (true) {
-      if (region_queue_.empty()) {
-        break;
-      }
-      const RollbackTask task = region_queue_.front();
-      region_queue_.pop();
-      std::println("{}", dump_task(task));
+  if (config_->dry_run || config_->verbose) {
+    if (config_->dry_run) {
+      std::print("{}scheduled tasks:\n\n",
+                 core::log_prefix(config_->color_mode, core::LogLevel::Info));
+      std::println("{}", dump_and_clear_scheduled_tasks(&region_queue_));
+      return;
+    } else {
+      DCHECK(config_->verbose);
+      std::print("{}scheduled tasks:\n\n",
+                 core::log_prefix(config_->color_mode, core::LogLevel::Debug));
+      std::queue<RollbackTask> copied_queue = region_queue_;
+      std::println("{}", dump_and_clear_scheduled_tasks(&copied_queue));
     }
-    return;
   }
 
   if (region_queue_.empty()) {
@@ -550,6 +550,7 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
     return;
   }
 
+  // TODO: file size checker
   switch (task.mode) {
     case RollbackMode::FullCopy: {
       // full region copy rollback
@@ -591,11 +592,10 @@ void RollbackExecutor::rollback_chunks(i32 rx,
                                        const RollbackTask& task,
                                        std::string_view src_file,
                                        std::string_view dest_file) {
-  constexpr size_t kMcaHeaderSize = 8192;
   core::MappedFile src;
-  src.open(src_file, kMcaHeaderSize);
+  src.open(src_file, kMcaHeaderSize, config_->color_mode);
   core::MappedFile dest;
-  dest.open(dest_file, kMcaHeaderSize);
+  dest.open(dest_file, kMcaHeaderSize, config_->color_mode);
 
   {
     bool failed_open = false;
@@ -640,6 +640,23 @@ void RollbackExecutor::rollback_chunks(i32 rx,
   // successfull_chunk_count_.fetch_add(
   //     static_cast<u64>(chunks_tried - failed_local));
   // failed_chunk_count_.fetch_add(static_cast<u64>(failed_local));
+}
+
+// static
+std::string RollbackExecutor::dump_and_clear_scheduled_tasks(
+    std::queue<RollbackTask>* tasks) {
+  std::string result;
+  constexpr size_t kEstimatedStrLenPerTask = 128;
+  result.resize(tasks->size() * kEstimatedStrLenPerTask);
+  while (true) {
+    if (tasks->empty()) {
+      break;
+    }
+    const RollbackTask task = tasks->front();
+    tasks->pop();
+    result.append(dump_task(task));
+  }
+  return result;
 }
 
 }  // namespace region

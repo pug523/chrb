@@ -94,6 +94,9 @@ class RollbackExecutor {
                        std::string_view src_file,
                        std::string_view dest_file);
 
+  static std::string dump_and_clear_scheduled_tasks(
+      std::queue<RollbackTask>* tasks);
+
   std::queue<RollbackTask> region_queue_;
   std::mutex mutex_;
   std::mutex failed_regions_mutex_;

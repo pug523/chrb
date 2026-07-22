@@ -46,11 +46,69 @@ bool safe_stoi(std::string_view str, i32* dest) {
   }
 }
 
+bool parse_chunks(std::string_view str,
+                  std::vector<region::ChunkPosition>* out) {
+  size_t start = 0;
+  while (start < str.size()) {
+    size_t sep = str.find_first_of(",. ", start);
+    if (sep == std::string_view::npos) {
+      std::println(stderr, "{}invalid chunk format: {} (expected x.z)",
+                   error_prefix(core::ColorMode::Never), str);
+      return false;
+    }
+
+    std::string_view x_str = str.substr(start, sep - start);
+
+    size_t next = str.find_first_of(", ", sep + 1);
+    if (next == std::string_view::npos) {
+      next = str.size();
+    }
+
+    std::string_view z_str = str.substr(sep + 1, next - (sep + 1));
+
+    i32 x = 0;
+    i32 z = 0;
+    if (!safe_stoi(x_str, &x) || !safe_stoi(z_str, &z)) {
+      return false;
+    }
+
+    out->push_back(region::ChunkPosition{x, z});
+
+    start = (next == str.size()) ? next : next + 1;
+    while (start < str.size() && (str[start] == ',' || str[start] == ' ')) {
+      start++;
+    }
+  }
+  return true;
+}
+
 }  // namespace
 
 ArgParser build_arg_parser(region::RollbackConfig* config) {
   ArgParser p("chrb", CHRB_PROJECT_VERSION,
               "=-=-= chunk rollback tool for minecraft =-=-=");
+
+  p.add({
+      .long_name = "--config",
+      .short_name = "-C",
+      .meta = "",
+      .description = "enable config toml file",
+      .takes_value = false,
+      .required = false,
+      .on_match =
+          [config](std::string_view) { config->config_file_enabled = true; },
+  });
+
+  p.add({
+      .long_name = "--config-path",
+      .short_name = "",
+      .meta = "<path>",
+      .description = "config file path (default: chrb.toml)",
+      .takes_value = true,
+      .required = false,
+      .on_match =
+          [config](std::string_view v) { config->config_file_path = v; },
+  });
 
   p.add({
       .long_name = "--src",
@@ -94,7 +152,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
 
   p.add({
       .long_name = "--color",
-      .short_name = "-c",
+      .short_name = "",
       .meta = "<auto|always|never>",
       .description = "color mode (default: auto)",
       .takes_value = true,
@@ -103,7 +161,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--src_world_structure",
+      .long_name = "--src-world-structure",
       .short_name = "-w",
       .meta = "<auto|old|new|paper>",
       .description = "directory structure of source world. (old: DIM-1/, new: "
@@ -115,7 +173,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--dest_world_structure",
+      .long_name = "--dest-world-structure",
       .short_name = "-W",
       .meta = "<auto|old|new|paper>",
       .description = "directory structure of dest world. (old: DIM-1/, new: "
@@ -129,12 +187,28 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--min_x",
+      .long_name = "--chunks",
+      .short_name = "-C",
+      .meta = "<x,z;x,z...>",
+      .description =
+          "comma/semicolon-separated chunk positions (e.g. 10,20;-5,15)",
+      .takes_value = true,
+      .required = false,
+      .on_match =
+          [config](std::string_view v) {
+            if (!parse_chunks(v, &config->chunks)) {
+              std::exit(1);
+            }
+          },
+  });
+
+  p.add({
+      .long_name = "--min-x",
       .short_name = "-x",
       .meta = "<n>",
-      .description = "minimum chunk x coordinate",
+      .description = "minimum chunk x coordinate constraint",
       .takes_value = true,
-      .required = true,
+      .required = false,
       .on_match =
           [config](std::string_view v) {
             if (!safe_stoi(v, &*config->min_x)) {
@@ -144,12 +218,12 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--max_x",
+      .long_name = "--max-x",
       .short_name = "-X",
       .meta = "<n>",
-      .description = "maximum chunk x coordinate",
+      .description = "maximum chunk x coordinate constraint",
       .takes_value = true,
-      .required = true,
+      .required = false,
       .on_match =
           [config](std::string_view v) {
             if (!safe_stoi(v, &*config->max_x)) {
@@ -159,12 +233,12 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--min_z",
+      .long_name = "--min-z",
       .short_name = "-z",
       .meta = "<n>",
-      .description = "minimum chunk z coordinate",
+      .description = "minimum chunk z coordinate constraint",
       .takes_value = true,
-      .required = true,
+      .required = false,
       .on_match =
           [config](std::string_view v) {
             if (!safe_stoi(v, &*config->min_z)) {
@@ -174,12 +248,12 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--max_z",
+      .long_name = "--max-z",
       .short_name = "-Z",
       .meta = "<n>",
-      .description = "maximum chunk z coordinate",
+      .description = "maximum chunk z coordinate constraint",
       .takes_value = true,
-      .required = true,
+      .required = false,
       .on_match =
           [config](std::string_view v) {
             if (!safe_stoi(v, &*config->max_z)) {
@@ -189,7 +263,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--num_threads",
+      .long_name = "--num-threads",
       .short_name = "-j",
       .meta = "<n>",
       .description = "number of worker threads (default: half of num threads "
@@ -205,7 +279,19 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
   });
 
   p.add({
-      .long_name = "--bulk_copy",
+      .long_name = "--allow-whole-rollback",
+      .short_name = "-a",
+      .meta = "",
+      .description = "allow whole world rollback when neither chunk range nor "
+                     "chunks are specified",
+      .takes_value = false,
+      .required = false,
+      .on_match =
+          [config](std::string_view) { config->allow_whole_rollback = true; },
+  });
+
+  p.add({
+      .long_name = "--bulk-copy",
       .short_name = "-b",
       .meta = "",
       .description = "use bulk copy for full region rollback",

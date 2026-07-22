@@ -181,6 +181,9 @@ void ArgParser::print_help() const {
     if (!d.short_name.empty()) {
       left.append(d.short_name);
       left.append(", ");
+    } else {
+      // padding
+      left.append("    ");
     }
     left.append(d.long_name);
     if (!d.meta.empty()) {

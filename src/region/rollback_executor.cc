@@ -32,6 +32,40 @@
 
 namespace region {
 
+namespace {
+
+bool matches_range_constraints(const ChunkPosition& pos,
+                               const RollbackConfig& config) {
+  if (config.min_x.has_value() && pos.x < *config.min_x) {
+    return false;
+  }
+  if (config.max_x.has_value() && pos.x > *config.max_x) {
+    return false;
+  }
+  if (config.min_z.has_value() && pos.z < *config.min_z) {
+    return false;
+  }
+  if (config.max_z.has_value() && pos.z > *config.max_z) {
+    return false;
+  }
+  return true;
+}
+
+struct RegionPosHash {
+  size_t operator()(const RegionPosition& pos) const noexcept {
+    return (static_cast<size_t>(pos.x) << 32) ^ static_cast<size_t>(pos.z);
+  }
+};
+
+struct RegionPosEqual {
+  bool operator()(const RegionPosition& a,
+                  const RegionPosition& b) const noexcept {
+    return a.x == b.x && a.z == b.z;
+  }
+};
+
+}  // namespace
+
 void RollbackExecutor::init(RollbackConfig* config) {
   config_ = config;
   workers_.reserve(static_cast<size_t>(config_->num_threads));
@@ -118,14 +152,7 @@ void RollbackExecutor::flush() {
 }
 
 void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
-  const i32 min_region_x = *config_->min_x >> 5;
-  const i32 max_region_x = *config_->max_x >> 5;
-  const i32 min_region_z = *config_->min_z >> 5;
-  const i32 max_region_z = *config_->max_z >> 5;
-
-  const i64 estimated_region_count =
-      (max_region_x - min_region_x + 1) * (max_region_z - min_region_z + 1);
-  DCHECK(estimated_region_count > 0);
+  constexpr size_t kFullRegionChunksCount = 1024;
 
   std::string src_mca_dir = config_->src_world;
   build_mca_dir_path(&src_mca_dir, config_->src_world_structure, dimension,
@@ -147,15 +174,74 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
     return;
   }
 
-  const i64 files_on_disk = core::count_files(src_mca_dir);
+  // if chunks are specified
+  if (!config_->chunks.empty()) {
+    std::unordered_map<RegionPosition, std::vector<ChunkPosition>,
+                       RegionPosHash, RegionPosEqual>
+        region_map;
 
-  if (estimated_region_count < files_on_disk) {
-    schedule_for_each_region_requested(min_region_x, max_region_x, min_region_z,
-                                       max_region_z, dimension, type);
+    for (const auto& chunk : config_->chunks) {
+      if (matches_range_constraints(chunk, *config_)) {
+        RegionPosition r_pos{chunk.x >> 5, chunk.z >> 5};
+        region_map[r_pos].push_back(chunk);
+      }
+    }
+
+    for (auto& [r_pos, chunks] : region_map) {
+      if (config_->verbose) {
+        std::println("{}scheduling r({:4}, {:4}) in {} for {} ({} chunks)",
+                     core::debug_prefix(config_->color_mode), r_pos.x, r_pos.z,
+                     dimension_to_str(dimension), type_to_str(type),
+                     chunks.size());
+      }
+
+      const bool is_full = (chunks.size() == kFullRegionChunksCount);
+
+      region_queue_.push(RollbackTask{
+          .region = r_pos,
+          .target_chunks = std::move(chunks),
+          .chunk_range = {},
+          .dimension = dimension,
+          .type = type,
+          .mode = is_full ? RollbackMode::FullCopy : RollbackMode::Partial,
+      });
+    }
+    return;
+  }
+
+  // if chunks are not specified (ranged or whole world)
+  const i32 min_rx = config_->min_x.has_value()
+                         ? (*config_->min_x >> 5)
+                         : std::numeric_limits<i32>::min();
+  const i32 max_rx = config_->max_x.has_value()
+                         ? (*config_->max_x >> 5)
+                         : std::numeric_limits<i32>::max();
+  const i32 min_rz = config_->min_z.has_value()
+                         ? (*config_->min_z >> 5)
+                         : std::numeric_limits<i32>::min();
+  const i32 max_rz = config_->max_z.has_value()
+                         ? (*config_->max_z >> 5)
+                         : std::numeric_limits<i32>::max();
+
+  const bool has_unbounded_range =
+      !config_->min_x || !config_->max_x || !config_->min_z || !config_->max_z;
+
+  if (has_unbounded_range) {
+    schedule_for_each_region_in_mca_dir(std::move(src_mca_dir), min_rx, max_rx,
+                                        min_rz, max_rz, dimension, type);
   } else {
-    schedule_for_each_region_in_mca_dir(std::move(src_mca_dir), min_region_x,
-                                        max_region_x, min_region_z,
-                                        max_region_z, dimension, type);
+    const i64 estimated_region_count =
+        static_cast<i64>(max_rx - min_rx + 1) * (max_rz - min_rz + 1);
+    const i64 files_on_disk = core::count_files(src_mca_dir);
+
+    if (estimated_region_count < files_on_disk) {
+      schedule_for_each_region_requested(min_rx, max_rx, min_rz, max_rz,
+                                         dimension, type);
+    } else {
+      schedule_for_each_region_in_mca_dir(std::move(src_mca_dir), min_rx,
+                                          max_rx, min_rz, max_rz, dimension,
+                                          type);
+    }
   }
 }
 
@@ -179,16 +265,28 @@ void RollbackExecutor::schedule_for_each_region_requested(
                      dimension_to_str(dimension), type_to_str(type));
       }
 
-      const bool fully_contained =
-          *config_->min_x <= min_chunk_x && *config_->max_x >= max_chunk_x &&
-          *config_->min_z <= min_chunk_z && *config_->max_z >= max_chunk_z;
+      const bool min_x_ok = !config_->min_x || *config_->min_x <= min_chunk_x;
+      const bool max_x_ok = !config_->max_x || *config_->max_x >= max_chunk_x;
+      const bool min_z_ok = !config_->min_z || *config_->min_z <= min_chunk_z;
+      const bool max_z_ok = !config_->max_z || *config_->max_z >= max_chunk_z;
+      const bool fully_contained = min_x_ok && max_x_ok && min_z_ok && max_z_ok;
+
+      const i32 eff_min_x =
+          config_->min_x ? std::max(min_chunk_x, *config_->min_x) : min_chunk_x;
+      const i32 eff_min_z =
+          config_->min_z ? std::max(min_chunk_z, *config_->min_z) : min_chunk_z;
+      const i32 eff_max_x =
+          config_->max_x ? std::min(max_chunk_x, *config_->max_x) : max_chunk_x;
+      const i32 eff_max_z =
+          config_->max_z ? std::min(max_chunk_z, *config_->max_z) : max_chunk_z;
 
       region_queue_.push(RollbackTask{
           .region = {.x = rx, .z = rz},
-          .chunk_range = {.min_x = std::max(min_chunk_x, *config_->min_x),
-                          .min_z = std::max(min_chunk_z, *config_->min_z),
-                          .max_x = std::min(max_chunk_x, *config_->max_x),
-                          .max_z = std::min(max_chunk_z, *config_->max_z)},
+          .target_chunks = {},
+          .chunk_range = {.min_x = eff_min_x,
+                          .min_z = eff_min_z,
+                          .max_x = eff_max_x,
+                          .max_z = eff_max_z},
           .dimension = dimension,
           .type = type,
           .mode =
@@ -228,16 +326,28 @@ void RollbackExecutor::schedule_for_each_region_in_mca_dir(
                    dimension_to_str(dimension), type_to_str(type));
     }
 
-    const bool fully_contained =
-        *config_->min_x <= min_cx && *config_->max_x >= max_cx &&
-        *config_->min_z <= min_cz && *config_->max_z >= max_cz;
+    const bool min_x_ok = !config_->min_x || *config_->min_x <= min_cx;
+    const bool max_x_ok = !config_->max_x || *config_->max_x >= max_cx;
+    const bool min_z_ok = !config_->min_z || *config_->min_z <= min_cz;
+    const bool max_z_ok = !config_->max_z || *config_->max_z >= max_cz;
+    const bool fully_contained = min_x_ok && max_x_ok && min_z_ok && max_z_ok;
+
+    const i32 eff_min_x =
+        config_->min_x ? std::max(min_cx, *config_->min_x) : min_cx;
+    const i32 eff_min_z =
+        config_->min_z ? std::max(min_cz, *config_->min_z) : min_cz;
+    const i32 eff_max_x =
+        config_->max_x ? std::min(max_cx, *config_->max_x) : max_cx;
+    const i32 eff_max_z =
+        config_->max_z ? std::min(max_cz, *config_->max_z) : max_cz;
 
     region_queue_.push(RollbackTask{
         .region = {.x = rx, .z = rz},
-        .chunk_range = {.min_x = std::max(min_cx, *config_->min_x),
-                        .min_z = std::max(min_cz, *config_->min_z),
-                        .max_x = std::min(max_cx, *config_->max_x),
-                        .max_z = std::min(max_cz, *config_->max_z)},
+        .target_chunks = {},
+        .chunk_range = {.min_x = eff_min_x,
+                        .min_z = eff_min_z,
+                        .max_x = eff_max_x,
+                        .max_z = eff_max_z},
         .dimension = dimension,
         .type = type,
         .mode =
@@ -429,7 +539,7 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
     case RollbackMode::Partial: {
       // rollback per chunk: open files and execute chunk rollbacks
 
-      rollback_chunks(rx, rz, task.chunk_range, src_file, dest_file);
+      rollback_chunks(rx, rz, task, src_file, dest_file);
       break;
     }
     default: {
@@ -458,7 +568,7 @@ void RollbackExecutor::rollback_region(i32 rx,
 
 void RollbackExecutor::rollback_chunks(i32 rx,
                                        i32 rz,
-                                       ChunkRange range,
+                                       const RollbackTask& task,
                                        std::string_view src_file,
                                        std::string_view dest_file) {
   constexpr size_t kMcaHeaderSize = 8192;
@@ -488,20 +598,25 @@ void RollbackExecutor::rollback_chunks(i32 rx,
   ChunkProcessor chunk_processor;
   chunk_processor.init(rx, rz, &src, &dest, config_);
 
-  // i64 failed_local = 0;
-  for (i32 cx = range.min_x; cx <= range.max_x; ++cx) {
-    for (i32 cz = range.min_z; cz <= range.max_z; ++cz) {
-      chunk_processor.process(cx, cz);
-      // if (!chunk_processor.process(cx, cz)) {
-      //   ++failed_local;
-      // }
+  size_t chunks_processed = 0;
+  if (!task.target_chunks.empty()) {
+    for (const auto& chunk : task.target_chunks) {
+      chunk_processor.process(chunk.x, chunk.z);
     }
+    chunks_processed = task.target_chunks.size();
+  } else {
+    const auto& range = task.chunk_range;
+    for (i32 cx = range.min_x; cx <= range.max_x; ++cx) {
+      for (i32 cz = range.min_z; cz <= range.max_z; ++cz) {
+        chunk_processor.process(cx, cz);
+      }
+    }
+    chunks_processed = static_cast<size_t>(range.max_x - range.min_x + 1) *
+                       static_cast<size_t>(range.max_z - range.min_z + 1);
   }
 
-  const i64 chunks_tried =
-      (range.max_x - range.min_x + 1) * (range.max_z - range.min_z + 1);
-  DCHECK(chunks_tried > 0);
-  successfull_chunk_count_.fetch_add(static_cast<u64>(chunks_tried));
+  DCHECK(chunks_processed > 0);
+  successfull_chunk_count_.fetch_add(static_cast<u64>(chunks_processed));
   // successfull_chunk_count_.fetch_add(
   //     static_cast<u64>(chunks_tried - failed_local));
   // failed_chunk_count_.fetch_add(static_cast<u64>(failed_local));

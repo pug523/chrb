@@ -91,7 +91,7 @@ class RollbackExecutor {
                        std::string_view dest_file);
   void rollback_chunks(i32 rx,
                        i32 rz,
-                       ChunkRange range,
+                       const RollbackTask& task,
                        std::string_view src_file,
                        std::string_view dest_file);
 

@@ -14,18 +14,33 @@
 #include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/file_util.h"
+#include "region/chunk_position.h"
 #include "region/rollback_config.h"
 #include "region/rollback_executor.h"
 
 namespace app {
 
+namespace {
+
+inline bool arg_status_contains(const ArgStatusPacked packed,
+                                const ArgStatus status) {
+  return (packed & static_cast<ArgStatusPacked>(status)) != 0;
+}
+
+}  // namespace
+
 i32 rollback(i32 argc, char** argv) {
   region::RollbackConfig config;
-  const ArgStatus arg_result = parse_args(argc, argv, &config);
-  if (arg_result == ArgStatus::PrintHelp ||
-      arg_result == ArgStatus::PrintVersion) {
+  const ArgStatusPacked arg_result = parse_args(argc, argv, &config);
+
+  if (config.verbose) {
+    std::print("{}", region::format_rollback_config(config));
+  }
+
+  if (arg_status_contains(arg_result, ArgStatus::PrintHelp) ||
+      arg_status_contains(arg_result, ArgStatus::PrintVersion)) {
     return 0;
-  } else if (arg_result != ArgStatus::Success) {
+  } else if (arg_result != static_cast<ArgStatusPacked>(ArgStatus::Success)) {
     return static_cast<i32>(arg_result);
   }
 
@@ -50,32 +65,6 @@ i32 rollback(i32 argc, char** argv) {
     if (!dir_exists) {
       return 1;
     }
-  }
-
-  if (config.verbose) {
-    std::print(R"(
-[rollback_config]
-
-src_world = {}
-dest_world = {}
-dim_str = {}
-type_str = {}
-color_str = {}
-src_world_structure_str = {}
-dest_world_structure_str = {}
-min_x = {}
-max_x = {}
-min_z = {}
-max_z = {}
-num_threads = {}
-verbose = {}
-
-)",
-               config.src_world, config.dest_world, config.dim_str,
-               config.type_str, config.color_str,
-               config.src_world_structure_str, config.dest_world_structure_str,
-               *config.min_x, *config.max_x, *config.min_z, *config.max_z,
-               config.num_threads, config.verbose);
   }
 
   region::RollbackExecutor executor;
@@ -104,13 +93,14 @@ verbose = {}
 
   i32 result = 0;
   if (failed_region_count > 0) {
-    std::string failed_regions_string = "";
+    std::string failed_regions_string = "[\n";
     for (const auto& r : executor.failed_regions()) {
-      failed_regions_string.append(std::format("r({:4}, {:4})\n", r.x, r.z));
+      failed_regions_string.append(std::format("  [{}, {}],\n", r.x, r.z));
     }
+    failed_regions_string.append("]");
+
     std::print(R"({}{:5} full regions failed
-[failed regions]
-{}
+failed_regions = {}
 )",
                core::error_prefix(config.color_mode), failed_region_count,
                failed_regions_string);

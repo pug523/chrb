@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <vector>
+
 #include "core/core.h"
+#include "region/chunk_position.h"
 #include "region/chunk_range.h"
 #include "region/dimension.h"
 #include "region/region_position.h"
@@ -19,6 +22,7 @@ enum class RollbackMode : u8 {
 
 struct RollbackTask {
   RegionPosition region;
+  std::vector<ChunkPosition> target_chunks;
   ChunkRange chunk_range;
   Dimension dimension;
   RollbackType type;

@@ -18,62 +18,65 @@
 
 namespace app {
 
-ArgStatus parse_args(i32 argc, char** argv, region::RollbackConfig* config) {
+ArgStatusPacked parse_args(i32 argc,
+                           char** argv,
+                           region::RollbackConfig* config) {
   ArgParser parser = build_arg_parser(config);
   const ParseResult pr = parser.parse(argc, argv);
 
   if (pr == ParseResult::PrintHelp) {
-    return ArgStatus::PrintHelp;
+    return static_cast<ArgStatusPacked>(ArgStatus::PrintHelp);
   } else if (pr == ParseResult::PrintVersion) {
-    return ArgStatus::PrintVersion;
+    return static_cast<ArgStatusPacked>(ArgStatus::PrintVersion);
   }
 
-  const ArgStatus vs = validate_config(config);
+  const ArgStatusPacked vs = validate_config(config);
   const bool required_ok = parser.validate_required();
-  if (pr != ParseResult::Ok || !required_ok || vs != ArgStatus::Success) {
+  if (pr != ParseResult::Ok || !required_ok ||
+      vs != static_cast<ArgStatusPacked>(ArgStatus::Success)) {
     std::println(stderr, "{}failed to parse commandline arguments",
                  core::error_prefix(config->color_mode));
     parser.print_help();
-    return vs != ArgStatus::Success ? vs : ArgStatus::UnknownArgument;
+    return vs | static_cast<ArgStatusPacked>(ArgStatus::UnknownArgument);
   }
 
-  return ArgStatus::Success;
+  return static_cast<ArgStatusPacked>(ArgStatus::Success);
 }
 
-ArgStatus validate_config(region::RollbackConfig* config) {
-  ArgStatus result = ArgStatus::Success;
+ArgStatusPacked validate_config(region::RollbackConfig* config) {
+  ArgStatusPacked result = static_cast<ArgStatusPacked>(ArgStatus::Success);
 
   config->color_mode = core::str_to_color_mode(config->color_str);
   if (config->color_mode == core::ColorMode::Unknown) {
     std::println(stderr, "{}invalid color mode: {}",
                  core::error_prefix(core::ColorMode::Never), config->color_str);
-    result = ArgStatus::InvalidColorMode;
+    result |= static_cast<ArgStatusPacked>(ArgStatus::InvalidColorMode);
     config->color_mode = core::ColorMode::Auto;
   }
 
   if (config->src_world.empty()) {
     std::println(stderr, "{}source world is not specified",
                  core::error_prefix(config->color_mode));
-    result = ArgStatus::SourceWorldEmpty;
+    result |= static_cast<ArgStatusPacked>(ArgStatus::SourceWorldEmpty);
   }
   if (config->dest_world.empty()) {
     std::println(stderr, "{}destination world is not specified",
                  core::error_prefix(config->color_mode));
-    result = ArgStatus::DestinationWorldEmpty;
+    result |= static_cast<ArgStatusPacked>(ArgStatus::DestinationWorldEmpty);
   }
 
   config->dimension = region::str_to_dimension(config->dim_str);
   if (config->dimension == region::Dimension::Unknown) {
     std::println(stderr, "{}invalid dimension: {}",
                  core::error_prefix(config->color_mode), config->dim_str);
-    result = ArgStatus::InvalidDimension;
+    result |= static_cast<ArgStatusPacked>(ArgStatus::InvalidDimension);
   }
 
   config->type = region::str_to_rollback_type(config->type_str);
   if (config->type == region::RollbackType::Unknown) {
     std::println(stderr, "{}invalid rollback type: {}",
                  core::error_prefix(config->color_mode), config->type_str);
-    result = ArgStatus::InvalidRollbackType;
+    result |= static_cast<ArgStatusPacked>(ArgStatus::InvalidRollbackType);
   }
 
   config->src_world_structure =
@@ -83,7 +86,8 @@ ArgStatus validate_config(region::RollbackConfig* config) {
     std::println(stderr, "{}invalid src world structure specified: {}",
                  core::error_prefix(config->color_mode),
                  config->src_world_structure_str);
-    result = ArgStatus::InvalidSourceWorldStructureConfig;
+    result |= static_cast<ArgStatusPacked>(
+        ArgStatus::InvalidSourceWorldStructureConfig);
   }
 
   config->dest_world_structure =
@@ -93,15 +97,18 @@ ArgStatus validate_config(region::RollbackConfig* config) {
     std::println(stderr, "{}invalid dest world structure specified: {}",
                  core::error_prefix(config->color_mode),
                  config->dest_world_structure_str);
-    result = ArgStatus::InvalidDestinationWorldStructureConfig;
+    result |= static_cast<ArgStatusPacked>(
+        ArgStatus::InvalidDestinationWorldStructureConfig);
   }
 
-  if (!config->min_x || !config->max_x || !config->min_z || !config->max_z) {
-    std::print(stderr, "{}chunk range missing\nmin: ({},{}), max: ({},{})\n",
-               core::error_prefix(config->color_mode),
-               config->min_x.value_or(0), config->min_z.value_or(0),
-               config->max_x.value_or(0), config->max_z.value_or(0));
-    result = ArgStatus::ChunkRangeMissing;
+  const bool has_range_constraint =
+      config->min_x || config->max_x || config->min_z || config->max_z;
+  const bool has_chunks = !config->chunks.empty();
+  if (!config->allow_whole_rollback && !(has_range_constraint || has_chunks)) {
+    std::print(stderr, "{}whole world rollback is not allowed\n",
+               core::error_prefix(config->color_mode));
+    result |=
+        static_cast<ArgStatusPacked>(ArgStatus::WholeWorldRollbackNotAllowed);
   }
 
   const i32 thread_count =
@@ -109,7 +116,7 @@ ArgStatus validate_config(region::RollbackConfig* config) {
   if (config->num_threads <= 0 || thread_count < config->num_threads) {
     std::println(stderr, "{}invalid number of threads specified: {}",
                  core::error_prefix(config->color_mode), config->num_threads);
-    result = ArgStatus::InvalidNumThreads;
+    result |= static_cast<ArgStatusPacked>(ArgStatus::InvalidNumThreads);
   }
 
   return result;

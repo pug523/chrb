@@ -29,6 +29,7 @@ bool MappedFile::open(std::string_view path, size_t min_size, ColorMode color) {
   path_ = path;
 
 #if CHRB_BUILD_FLAG(IS_OS_WIN)
+  (void)(color);
   file_handle_ =
       CreateFileA(path_.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
                   nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);

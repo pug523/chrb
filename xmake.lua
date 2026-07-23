@@ -3,7 +3,7 @@
 -- which can be found in the LICENSE file.
 
 set_project("chrb")
-local project_version = "0.4.0"
+local project_version = "0.4.1"
 set_version(project_version)
 
 option("coverage", { default = false, description = "use llvm-cov for analyzing test coverage" })

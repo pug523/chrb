@@ -18,6 +18,8 @@ option("tests", { default = false, description = "build unit tests" })
 option("lib", { default = false, description = "build as static library"})
 option("stdlib", { default = "libstdc++", description = "stl to use" })
 
+includes("src/build/xmake/fpag.lua")
+
 set_policy("build.ccache", true)
 set_policy("check.auto_ignore_flags", false)
 set_policy("build.progress_style", "multirow")
@@ -64,6 +66,14 @@ local function source_files()
     return files
 end
 
+add_requires("fpag v0.1.0", {
+  system = false,
+  external = true,
+  configs = {
+    stdlib = get_config("stdlib"),
+    libunwind = get_config("libunwind"),
+  },
+})
 add_requires("toml++ v3.4.0", { system = false, configs = table.join(stdlib_config(), { header_only = true }) })
 
 if has_config("tests") then
@@ -273,6 +283,7 @@ target("chrb")
   add_files("src/app/**.cc")
   add_deps(chrb_modules)
   add_packages("toml++")
+  add_packages("fpag")
   set_default(true)
 target_end()
 

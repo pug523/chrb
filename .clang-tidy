@@ -61,7 +61,7 @@ Checks: >
   readability-redundant-member-init,
   readability-redundant-smartptr-get
 HeaderFilterRegex: '^.*[\\/](src|tests)[\\/].*$'
-ExcludeHeaderFilterRegex: '^.*[\\/](third_party/)[\\/].*$'
+ExcludeHeaderFilterRegex: '^.*[\\/](third_party|.xmake)[\\/].*$'
 SystemHeaders:    false
 WarningsAsErrors: '*'
 ExtraArgsBefore:

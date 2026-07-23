@@ -187,6 +187,7 @@ target("chrb_root_config")
 
   if is_clang or is_gcc then
     add_cxxflags("-Wconversion", "-Wsign-conversion", "-Wnull-dereference", "-Wformat=2", "-Wundef", { public = true })
+    add_cxxflags("-Wnon-virtual-dtor", "-Woverloaded-virtual", { public = true })
     add_cxxflags("-fstack-protector-strong", { public = true })
 
     if is_mode("debug") and not is_plat("windows") then

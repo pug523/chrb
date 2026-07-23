@@ -80,7 +80,8 @@ void ChunkProcessor::add_chunk(const i32 cx,
                                const i32 cz,
                                const i32 index,
                                const LocationEntry src_loc) {
-  const size_t bytes = src_loc.sectors * core::kSectorSize;
+  const size_t bytes =
+      static_cast<const size_t>(src_loc.sectors * core::kSectorSize);
   std::vector<char> buffer(bytes);
   src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
              buffer.data(), bytes);
@@ -121,7 +122,8 @@ void ChunkProcessor::replace_chunk(const i32 cx,
                                    const i32 index,
                                    const LocationEntry src_loc,
                                    const LocationEntry dest_loc) {
-  const size_t src_bytes = src_loc.sectors * core::kSectorSize;
+  const size_t src_bytes =
+      static_cast<const size_t>(src_loc.sectors * core::kSectorSize);
   std::vector<u8> buffer(src_bytes);
   src_->read(static_cast<size_t>(src_loc.offset) * core::kSectorSize,
              buffer.data(), src_bytes);

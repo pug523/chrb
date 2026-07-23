@@ -89,7 +89,7 @@ void build_mca_dir_path(std::string* world_dir,
   DCHECK(dimension != Dimension::Unknown);
   DCHECK(type != RollbackType::Unknown);
 
-  WorldDirectoryStructure s =
+  const WorldDirectoryStructure s =
       world_directory_structure_with_config(*world_dir, structure);
 
   switch (s) {

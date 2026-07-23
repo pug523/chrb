@@ -89,14 +89,14 @@ void RollbackExecutor::start() {
 
   if (config_->verbose || config_->dry_run) {
     if (config_->src_world_structure == WorldDirectoryStructureConfig::Auto) {
-      WorldDirectoryStructure src_structure =
+      const WorldDirectoryStructure src_structure =
           detect_world_structure(config_->src_world);
       std::println("{}detected src world structure: {}",
                    core::log_prefix(config_->color_mode, core::LogLevel::Info),
                    world_dir_structure_to_str(src_structure));
     }
     if (config_->dest_world_structure == WorldDirectoryStructureConfig::Auto) {
-      WorldDirectoryStructure dest_structure =
+      const WorldDirectoryStructure dest_structure =
           detect_world_structure(config_->dest_world);
       std::println("{}detected dest world structure: {}",
                    core::log_prefix(config_->color_mode, core::LogLevel::Info),
@@ -113,7 +113,7 @@ void RollbackExecutor::start() {
   const bool do_poi = r == RollbackType::Poi || r == RollbackType::All;
 
   {
-    std::unique_lock<std::mutex> lock(mutex_);
+    const std::unique_lock<std::mutex> lock(mutex_);
     if (do_region) {
       schedule(config_->dimension, RollbackType::Region);
     }
@@ -145,7 +145,7 @@ void RollbackExecutor::flush() {
   }
 
   {
-    std::unique_lock<std::mutex> lock(mutex_);
+    const std::unique_lock<std::mutex> lock(mutex_);
     stop_.store(true);
   }
   cv_.notify_all();
@@ -205,7 +205,7 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
 
     for (const auto& chunk : config_->chunks) {
       if (matches_range_constraints(chunk, *config_)) {
-        RegionPosition r_pos{chunk.x >> 5, chunk.z >> 5};
+        const RegionPosition r_pos{chunk.x >> 5, chunk.z >> 5};
         region_map[r_pos].push_back(chunk);
       }
     }
@@ -386,7 +386,7 @@ void RollbackExecutor::run_full_copy_batch() {
   {
     std::queue<RollbackTask> remaining;
     while (!region_queue_.empty()) {
-      RollbackTask t = region_queue_.front();
+      const RollbackTask t = region_queue_.front();
       region_queue_.pop();
       if (t.mode == RollbackMode::FullCopy) {
         full_tasks.push_back(t);
@@ -460,7 +460,7 @@ void RollbackExecutor::run_full_copy_batch() {
                  core::error_prefix(config_->color_mode), t.region.x,
                  t.region.z);
     failed_region_count_.fetch_add(1);
-    std::unique_lock<std::mutex> lock(failed_regions_mutex_);
+    const std::unique_lock<std::mutex> lock(failed_regions_mutex_);
     failed_regions_.emplace_back(t.region.x, t.region.z);
   };
 

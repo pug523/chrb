@@ -490,7 +490,8 @@ bool create_file(const std::string_view path) {
     return false;
   }
 #else
-  i32 fd = open(path.data(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+  const i32 fd =
+      open(path.data(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
 #endif
   if (fd == -1) {
     return false;

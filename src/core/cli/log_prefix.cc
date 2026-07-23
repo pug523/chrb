@@ -39,7 +39,7 @@ constexpr void build_ansi_prefix(PrefixStorage* out,
                                  std::string_view suffix) {
   char* p = out->buf;
   auto append = [&](std::string_view s) {
-    for (char c : s) {
+    for (const char c : s) {
       *p++ = c;
     }
   };
@@ -71,7 +71,7 @@ struct PrefixTable {
 };
 
 inline const PrefixTable& table() {
-  static PrefixTable table = [] {
+  static const PrefixTable table = [] {
     PrefixTable t;
     t.init();
     return t;

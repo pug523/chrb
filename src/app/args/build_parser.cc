@@ -52,21 +52,21 @@ bool parse_chunks(std::string_view str,
                   std::vector<region::ChunkPosition>* out) {
   size_t start = 0;
   while (start < str.size()) {
-    size_t sep = str.find_first_of(",. ", start);
+    const size_t sep = str.find_first_of(",. ", start);
     if (sep == std::string_view::npos) {
       std::println(stderr, "{}invalid chunk format: {} (expected x.z)",
                    error_prefix(core::ColorMode::Never), str);
       return false;
     }
 
-    std::string_view x_str = str.substr(start, sep - start);
+    const std::string_view x_str = str.substr(start, sep - start);
 
     size_t next = str.find_first_of(", ", sep + 1);
     if (next == std::string_view::npos) {
       next = str.size();
     }
 
-    std::string_view z_str = str.substr(sep + 1, next - (sep + 1));
+    const std::string_view z_str = str.substr(sep + 1, next - (sep + 1));
 
     i32 x = 0;
     i32 z = 0;
@@ -211,7 +211,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            i32 temp;
+            i32 temp = 0;
             if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }
@@ -228,7 +228,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            i32 temp;
+            i32 temp = 0;
             if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }
@@ -245,7 +245,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            i32 temp;
+            i32 temp = 0;
             if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }
@@ -262,7 +262,7 @@ ArgParser build_arg_parser(region::RollbackConfig* config) {
       .required = false,
       .on_match =
           [config](std::string_view v) {
-            i32 temp;
+            i32 temp = 0;
             if (!safe_stoi(v, &temp)) {
               std::exit(1);
             }

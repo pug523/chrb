@@ -147,7 +147,7 @@ bool ArgParser::validate_required() const {
   bool ok = true;
   for (size_t i = 0; i < defs_.size(); ++i) {
     if (defs_[i].required && !matched_[i]) {
-      if (provided_keys_.contains(std::string(defs_[i].long_name))) {
+      if (!provided_keys_.contains(std::string(defs_[i].long_name))) {
         std::println(stderr, "{}required argument '{}' not provided",
                      error_prefix(core::ColorMode::Auto), defs_[i].long_name);
         ok = false;

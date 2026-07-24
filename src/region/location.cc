@@ -6,7 +6,6 @@
 
 #include <cstddef>
 
-#include "core/core.h"
 #include "core/mem/mapped_file.h"
 
 namespace region {

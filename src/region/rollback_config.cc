@@ -4,12 +4,14 @@
 
 #include "region/rollback_config.h"
 
+#include <charconv>
 #include <cstddef>
 #include <format>
 #include <string>
+#include <string_view>
+#include <system_error>
 #include <vector>
 
-#include "core/core.h"
 #include "core/format_util.h"
 #include "region/chunk_position.h"
 
@@ -53,7 +55,7 @@ std::vector<ChunkPosition> parse_chunks(
     const std::vector<std::vector<i32>>& chunks) {
   std::vector<ChunkPosition> result;
   result.resize(chunks.size());
-  for (size_t i = 0; i < chunks.size(); ++i) {
+  for (usize i = 0; i < chunks.size(); ++i) {
     const std::vector<i32>& chunk = chunks[i];
     if (chunk.size() != 2) {
       continue;
@@ -62,6 +64,30 @@ std::vector<ChunkPosition> parse_chunks(
     result[i].z = chunk[1];
   }
   return result;
+}
+
+std::vector<ChunkPosition> parse_chunks(
+    const std::vector<std::string_view>& raw_chunks) {
+  std::vector<std::vector<i32>> chunks;
+  chunks.resize(raw_chunks.size());
+  for (usize i = 0; i < chunks.size(); ++i) {
+    std::string_view const chunk = raw_chunks[i];
+    usize const dot = chunk.find_first_of('.');
+    if (dot == std::string_view::npos) {
+      continue;
+    }
+    std::string_view const x = chunk.substr(0, dot);
+    std::string_view const z = chunk.substr(dot);
+    i32 ix = 0;
+    i32 iz = 0;
+    auto [xptr, xec] = std::from_chars(x.data(), x.data() + x.size(), ix);
+    auto [zptr, zec] = std::from_chars(z.data(), z.data() + z.size(), iz);
+    if (xec != std::errc() || zec != std::errc()) {
+      continue;
+    }
+    chunks[i] = std::vector<i32>{ix, iz};
+  }
+  return parse_chunks(chunks);
 }
 
 }  // namespace region

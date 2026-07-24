@@ -19,10 +19,11 @@
 #include <utility>
 #include <vector>
 
+#include "build/build_config.h"
 #include "core/check.h"
-#include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/file_util.h"
+#include "core/logger.h"
 #include "core/mem/mapped_file.h"
 #include "region/chunk_position.h"
 #include "region/dimension.h"
@@ -83,24 +84,21 @@ void RollbackExecutor::start() {
   DCHECK(config_->num_threads > 0);
 
   if (!config_->silent) {
-    std::println("{}starting rollback...",
-                 core::info_prefix(config_->color_mode));
+    core::logger.info("starting rollback...");
   }
 
   if (config_->verbose || config_->dry_run) {
     if (config_->src_world_structure == WorldDirectoryStructureConfig::Auto) {
       const WorldDirectoryStructure src_structure =
           detect_world_structure(config_->src_world);
-      std::println("{}detected src world structure: {}",
-                   core::log_prefix(config_->color_mode, core::LogLevel::Info),
-                   world_dir_structure_to_str(src_structure));
+      core::logger.info("detected src world structure: {}",
+                        world_dir_structure_to_str(src_structure));
     }
     if (config_->dest_world_structure == WorldDirectoryStructureConfig::Auto) {
       const WorldDirectoryStructure dest_structure =
           detect_world_structure(config_->dest_world);
-      std::println("{}detected dest world structure: {}",
-                   core::log_prefix(config_->color_mode, core::LogLevel::Info),
-                   world_dir_structure_to_str(dest_structure));
+      core::logger.info("detected dest world structure: {}",
+                        world_dir_structure_to_str(dest_structure));
     }
   }
 
@@ -126,8 +124,7 @@ void RollbackExecutor::start() {
   }
 
   if (!config_->silent) {
-    std::println("{}scheduled {} regions",
-                 core::info_prefix(config_->color_mode), region_queue_.size());
+    core::logger.info("scheduled {} regions", region_queue_.size());
   }
 
 #if CHRB_BUILD_FLAG(IS_OS_LINUX)
@@ -161,15 +158,13 @@ void RollbackExecutor::flush() {
     namespace ch = std::chrono;
     const auto elapsed = ch::steady_clock::now() - start_time_;
     if (elapsed < ch::seconds(1)) {
-      std::println("{}rollback completed in: {}ms",
-                   core::info_prefix(config_->color_mode),
-                   ch::duration_cast<ch::milliseconds>(elapsed).count());
+      const i64 elapsed_ms =
+          ch::duration_cast<ch::milliseconds>(elapsed).count();
+      core::logger.info("rollback completed in: {}ms", elapsed_ms);
     } else {
       const auto s = ch::duration_cast<ch::seconds>(elapsed);
       const auto ms = ch::duration_cast<ch::milliseconds>(elapsed - s);
-      std::println("{}rollback completed in: {}.{}s",
-                   core::info_prefix(config_->color_mode), s.count(),
-                   ms.count());
+      core::logger.info("rollback completed in: {}.{}s", s.count(), ms.count());
     }
   }
 }
@@ -182,18 +177,16 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
                      type);
 
   if (!core::is_dir(src_mca_dir)) {
-    std::println(stderr, "{}src directory not found: {}",
-                 core::error_prefix(config_->color_mode), src_mca_dir);
+    core::logger.error("src directory not found: {}", src_mca_dir);
     return;
   }
 
-  std::string mca_dest_dir = config_->dest_world;
-  build_mca_dir_path(&mca_dest_dir, config_->dest_world_structure, dimension,
+  std::string dest_mca_dir = config_->dest_world;
+  build_mca_dir_path(&dest_mca_dir, config_->dest_world_structure, dimension,
                      type);
 
-  if (!core::is_dir(mca_dest_dir)) {
-    std::println(stderr, "{}dest directory not found: {}",
-                 core::error_prefix(config_->color_mode), mca_dest_dir);
+  if (!core::is_dir(dest_mca_dir)) {
+    core::logger.error("dest directory not found: {}", dest_mca_dir);
     return;
   }
 
@@ -212,10 +205,9 @@ void RollbackExecutor::schedule(Dimension dimension, RollbackType type) {
 
     for (auto& [r_pos, chunks] : region_map) {
       if (config_->verbose) {
-        std::println("{}scheduling r({:4}, {:4}) in {} for {} ({} chunks)",
-                     core::debug_prefix(config_->color_mode), r_pos.x, r_pos.z,
-                     dimension_to_str(dimension), type_to_str(type),
-                     chunks.size());
+        core::logger.debug("scheduling r({:4}, {:4}) in {} for {} ({} chunks)",
+                           r_pos.x, r_pos.z, dimension_to_str(dimension),
+                           type_to_str(type), chunks.size());
       }
 
       const bool is_full = (chunks.size() == kFullRegionChunksCount);
@@ -283,9 +275,8 @@ void RollbackExecutor::schedule_for_each_region_requested(
       const i32 max_chunk_z = (rz << 5) + 31;
 
       if (config_->verbose) {
-        std::println("{}scheduling r({:4}, {:4}) in {} for {}",
-                     core::debug_prefix(config_->color_mode), rx, rz,
-                     dimension_to_str(dimension), type_to_str(type));
+        core::logger.debug("scheduling r({:4}, {:4}) in {} for {}", rx, rz,
+                           dimension_to_str(dimension), type_to_str(type));
       }
 
       const bool min_x_ok = !config_->min_x || *config_->min_x <= min_chunk_x;
@@ -344,9 +335,8 @@ void RollbackExecutor::schedule_for_each_region_in_mca_dir(
     const i32 max_cz = (rz << 5) + 31;
 
     if (config_->verbose) {
-      std::println("{}scheduling r({:4}, {:4}) in {} for {}",
-                   core::debug_prefix(config_->color_mode), rx, rz,
-                   dimension_to_str(dimension), type_to_str(type));
+      core::logger.debug("scheduling r({:4}, {:4}) in {} for {}", rx, rz,
+                         dimension_to_str(dimension), type_to_str(type));
     }
 
     const bool min_x_ok = !config_->min_x || *config_->min_x <= min_cx;
@@ -423,9 +413,9 @@ void RollbackExecutor::run_full_copy_batch() {
 
     if (!core::is_file(src) || !core::is_file(dest)) {
       if (config_->verbose) {
-        std::println("{}skipped missing region: r.{}.{}.mca",
-                     core::debug_prefix(config_->color_mode), task.region.x,
-                     task.region.z);
+        const i32 x = task.region.x;
+        const i32 z = task.region.z;
+        core::logger.debug("skipped missing region: r.{}.{}.mca", x, z);
       }
       continue;
     }
@@ -440,25 +430,21 @@ void RollbackExecutor::run_full_copy_batch() {
   }
 
   if (!config_->silent) {
-    std::println("{}bulk-copying {} full region(s)...",
-                 core::info_prefix(config_->color_mode), srcs.size());
+    core::logger.info("bulk-copying {} full region(s)...", srcs.size());
   }
 
   const auto on_success = [&](size_t ci) {
     successfull_region_count_.fetch_add(1);
     if (config_->verbose) {
       const auto& t = full_tasks[task_idx[ci]];
-      std::println("{}copied region r({:4}, {:4})",
-                   core::debug_prefix(config_->color_mode), t.region.x,
-                   t.region.z);
+      core::logger.debug("copied region r({:4}, {:4})", t.region.x, t.region.z);
     }
   };
 
   const auto on_failure = [&](size_t ci) {
     const auto& t = full_tasks[task_idx[ci]];
-    std::println(stderr, "{}failed to copy region r({}, {})",
-                 core::error_prefix(config_->color_mode), t.region.x,
-                 t.region.z);
+    core::logger.error("failed to copy region r({:4}, {:4})", t.region.x,
+                       t.region.z);
     failed_region_count_.fetch_add(1);
     const std::unique_lock<std::mutex> lock(failed_regions_mutex_);
     failed_regions_.emplace_back(t.region.x, t.region.z);
@@ -478,15 +464,14 @@ void RollbackExecutor::start_workers() {
 
   if (config_->dry_run || config_->verbose) {
     if (config_->dry_run) {
-      std::print("{}scheduled tasks:\n\n",
-                 core::log_prefix(config_->color_mode, core::LogLevel::Info));
-      std::println("{}", dump_and_clear_scheduled_tasks(&region_queue_));
+      core::logger.info("scheduled tasks:\n\n{}",
+                        dump_and_clear_scheduled_tasks(&region_queue_));
       return;
     } else {
       DCHECK(config_->verbose);
-      std::print("{}scheduled tasks:\n\n",
-                 core::log_prefix(config_->color_mode, core::LogLevel::Debug));
       std::queue<RollbackTask> copied_queue = region_queue_;
+      core::logger.info("scheduled tasks:\n\n{}",
+                        dump_and_clear_scheduled_tasks(&copied_queue));
       std::println("{}", dump_and_clear_scheduled_tasks(&copied_queue));
     }
   }
@@ -498,13 +483,11 @@ void RollbackExecutor::start_workers() {
   for (i32 i = 0; i < config_->num_threads; ++i) {
     workers_.emplace_back(&RollbackExecutor::worker_thread, this);
     if (config_->verbose) {
-      std::println("{}started worker thread (id: {})",
-                   core::debug_prefix(config_->color_mode), i);
+      core::logger.debug("started worker thread (id: {})", i);
     }
   }
   if (config_->verbose) {
-    std::println("{}started all {} worker threads",
-                 core::debug_prefix(config_->color_mode), config_->num_threads);
+    core::logger.debug("started all {} worker threads", config_->num_threads);
   }
 }
 
@@ -538,12 +521,10 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
   {
     bool dir_exists = true;
     if (!core::is_dir(src_dir)) {
-      std::println(stderr, "{}directory not found: {}",
-                   core::error_prefix(config_->color_mode), src_dir);
+      core::logger.error("src directory not found: {}", src_dir);
       dir_exists = false;
     } else if (!core::is_dir(dest_dir)) {
-      std::println(stderr, "{}directory not found: {}",
-                   core::error_prefix(config_->color_mode), dest_dir);
+      core::logger.error("dest directory not found: {}", dest_dir);
       dir_exists = false;
     }
     if (!dir_exists) {
@@ -560,9 +541,8 @@ void RollbackExecutor::run_task(const RollbackTask& task) {
 
   if (!core::is_file(src_file) || !core::is_file(dest_file)) {
     if (config_->verbose) {
-      std::println("{}skipped missing region: r.{}.{}.mca",
-                   core::debug_prefix(config_->color_mode), task.region.x,
-                   task.region.z);
+      core::logger.debug("skipped missing region: r.{}.{}.mca", task.region.x,
+                         task.region.z);
     }
     // this is not an error
     return;
@@ -611,20 +591,18 @@ void RollbackExecutor::rollback_chunks(i32 rx,
                                        std::string_view src_file,
                                        std::string_view dest_file) {
   core::MappedFile src;
-  src.open(src_file, kMcaHeaderSize, config_->color_mode);
+  src.open(src_file, kMcaHeaderSize);
   core::MappedFile dest;
-  dest.open(dest_file, kMcaHeaderSize, config_->color_mode);
+  dest.open(dest_file, kMcaHeaderSize);
 
   {
     bool failed_open = false;
     if (!src.is_open()) {
-      std::println(stderr, "{}failed to open src file",
-                   core::error_prefix(config_->color_mode));
+      core::logger.error("failed to open src file");
       failed_open = true;
     }
     if (!dest.is_open()) {
-      std::println(stderr, "{}failed to open dest file",
-                   core::error_prefix(config_->color_mode));
+      core::logger.error("failed to open dest file");
       failed_open = true;
     }
     if (failed_open) {

@@ -9,8 +9,8 @@
 #include <thread>
 #include <vector>
 
-#include "core/cli/log_prefix.h"
 #include "core/core.h"
+#include "fpag/base/color_mode.h"
 #include "region/chunk_position.h"
 #include "region/dimension.h"
 #include "region/rollback_type.h"
@@ -21,14 +21,14 @@ namespace region {
 // Note: when update this struct update also `src/app/args/build_parser.cc`,
 // `src/app/toml/toml_parser.cc` and `region/rollback_config.cc`
 struct RollbackConfig {
-  std::string src_world = "undefined";
-  std::string dest_world = "undefined";
+  std::string src_world = "";
+  std::string dest_world = "";
   std::string dim_str = "overworld";
   Dimension dimension = Dimension::OverWorld;
   std::string type_str = "all";
   RollbackType type = RollbackType::All;
   std::string color_str = "auto";
-  core::ColorMode color_mode = core::ColorMode::Auto;
+  base::ColorMode color_mode = base::ColorMode::Auto;
   std::string src_world_structure_str = "auto";
   WorldDirectoryStructureConfig src_world_structure =
       WorldDirectoryStructureConfig::Auto;
@@ -54,5 +54,8 @@ std::string dump_rollback_config(const RollbackConfig& config);
 
 std::vector<ChunkPosition> parse_chunks(
     const std::vector<std::vector<i32>>& chunks);
+
+std::vector<ChunkPosition> parse_chunks(
+    const std::vector<std::string_view>& raw_chunks);
 
 }  // namespace region

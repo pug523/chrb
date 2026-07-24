@@ -2,8 +2,10 @@
 -- This source code is licensed under the Apache License, Version 2.0
 -- which can be found in the LICENSE file.
 
-set_project("chrb")
+local project_name = "chrb"
 local project_version = "0.4.1"
+
+set_project(project_name)
 set_version(project_version)
 
 option("coverage", { default = false, description = "use llvm-cov for analyzing test coverage" })
@@ -66,7 +68,7 @@ local function source_files()
     return files
 end
 
-add_requires("fpag v0.1.0", {
+add_requires("fpag 419c9bee39f133e7d0bf0adb3928a172dd561f93", {
   system = false,
   external = true,
   configs = {
@@ -187,7 +189,9 @@ target("chrb_root_config")
 
   set_encodings("source:utf-8", "utf-8")
 
+  add_defines('CHRB_PROJECT_NAME="' .. project_name .. '"', { public = true })
   add_defines('CHRB_PROJECT_VERSION="' .. project_version .. '"', { public = true })
+  add_packages("fpag", { public = true })
 
   add_includedirs("src", {public = true})
   -- add_includedirs("src", "third_party", {public = true})
@@ -283,7 +287,6 @@ target("chrb")
   add_files("src/app/**.cc")
   add_deps(chrb_modules)
   add_packages("toml++")
-  add_packages("fpag")
   set_default(true)
 target_end()
 

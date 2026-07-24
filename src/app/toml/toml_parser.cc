@@ -66,7 +66,7 @@ void parse_bool(const toml::table& rc,
 TomlParseStatus parse_toml_config(
     const std::string& config_path,
     region::RollbackConfig* dest,
-    std::unordered_set<std::string>* provided_keys_for_arg_parser) {
+    std::unordered_set<std::string>* provided_keys) {
   DCHECK(dest);
 
   if (!core::is_file(config_path)) {
@@ -92,20 +92,15 @@ TomlParseStatus parse_toml_config(
   }
 
   // String fields
-  parse_string(*rc, "src_world", &dest->src_world, "--src",
-               provided_keys_for_arg_parser);
-  parse_string(*rc, "dest_world", &dest->dest_world, "--dest",
-               provided_keys_for_arg_parser);
-  parse_string(*rc, "dimension", &dest->dim_str, "--dim",
-               provided_keys_for_arg_parser);
-  parse_string(*rc, "rollback_type", &dest->type_str, "--type",
-               provided_keys_for_arg_parser);
-  parse_string(*rc, "color", &dest->color_str, "--color",
-               provided_keys_for_arg_parser);
+  parse_string(*rc, "src_world", &dest->src_world, "--src", provided_keys);
+  parse_string(*rc, "dest_world", &dest->dest_world, "--dest", provided_keys);
+  parse_string(*rc, "dimension", &dest->dim_str, "--dim", provided_keys);
+  parse_string(*rc, "rollback_type", &dest->type_str, "--type", provided_keys);
+  parse_string(*rc, "color", &dest->color_str, "--color", provided_keys);
   parse_string(*rc, "src_world_structure", &dest->src_world_structure_str,
-               "--src-world-structure", provided_keys_for_arg_parser);
+               "--src-world-structure", provided_keys);
   parse_string(*rc, "dest_world_structure", &dest->dest_world_structure_str,
-               "--dest-world-structure", provided_keys_for_arg_parser);
+               "--dest-world-structure", provided_keys);
 
   // Array field (chunks)
   if (const auto* arr = (*rc)["chunks"].as_array()) {
@@ -126,34 +121,26 @@ TomlParseStatus parse_toml_config(
     }
 
     dest->chunks = region::parse_chunks(raw_chunks);
-    if (provided_keys_for_arg_parser) {
-      provided_keys_for_arg_parser->emplace("--chunks");
+    if (provided_keys) {
+      provided_keys->emplace("--chunks");
     }
   }
 
   // Integer fields
-  parse_int(*rc, "min_x", &dest->min_x, "--min-x",
-            provided_keys_for_arg_parser);
-  parse_int(*rc, "max_x", &dest->max_x, "--max-x",
-            provided_keys_for_arg_parser);
-  parse_int(*rc, "min_z", &dest->min_z, "--min-z",
-            provided_keys_for_arg_parser);
-  parse_int(*rc, "max_z", &dest->max_z, "--max-z",
-            provided_keys_for_arg_parser);
+  parse_int(*rc, "min_x", &dest->min_x, "--min-x", provided_keys);
+  parse_int(*rc, "max_x", &dest->max_x, "--max-x", provided_keys);
+  parse_int(*rc, "min_z", &dest->min_z, "--min-z", provided_keys);
+  parse_int(*rc, "max_z", &dest->max_z, "--max-z", provided_keys);
   parse_int(*rc, "num_threads", &dest->num_threads, "--num-threads",
-            provided_keys_for_arg_parser);
+            provided_keys);
 
   // Boolean fields
   parse_bool(*rc, "allow_whole_rollback", &dest->allow_whole_rollback,
-             "--allow-whole-rollback", provided_keys_for_arg_parser);
-  parse_bool(*rc, "bulk_copy", &dest->bulk_copy, "--bulk-copy",
-             provided_keys_for_arg_parser);
-  parse_bool(*rc, "dry_run", &dest->dry_run, "--dry-run",
-             provided_keys_for_arg_parser);
-  parse_bool(*rc, "silent", &dest->silent, "--silent",
-             provided_keys_for_arg_parser);
-  parse_bool(*rc, "verbose", &dest->verbose, "--verbose",
-             provided_keys_for_arg_parser);
+             "--allow-whole-rollback", provided_keys);
+  parse_bool(*rc, "bulk_copy", &dest->bulk_copy, "--bulk-copy", provided_keys);
+  parse_bool(*rc, "dry_run", &dest->dry_run, "--dry-run", provided_keys);
+  parse_bool(*rc, "silent", &dest->silent, "--silent", provided_keys);
+  parse_bool(*rc, "verbose", &dest->verbose, "--verbose", provided_keys);
 
   return TomlParseStatus::Success;
 }

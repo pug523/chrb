@@ -10,8 +10,7 @@
 #include <print>
 #include <string_view>
 
-#include "core/cli/log_prefix.h"
-#include "core/core.h"
+#include "core/logger.h"
 
 #if CHRB_BUILD_FLAG(IS_OS_WIN)
 #include <windows.h>
@@ -24,7 +23,7 @@
 
 namespace core {
 
-bool MappedFile::open(std::string_view path, size_t min_size, ColorMode color) {
+bool MappedFile::open(std::string_view path, size_t min_size) {
   close();
   path_ = path;
 
@@ -78,8 +77,7 @@ bool MappedFile::open(std::string_view path, size_t min_size, ColorMode color) {
 #else
   fd_ = ::open(path_.c_str(), O_RDWR);
   if (fd_ < 0) {
-    std::println(stderr, "{}failed to open the file: {}", error_prefix(color),
-                 path);
+    core::logger.error("failed to open the file: {}", path);
     return false;
   }
 
@@ -87,8 +85,7 @@ bool MappedFile::open(std::string_view path, size_t min_size, ColorMode color) {
   if (fstat(fd_, &st) < 0) {
     ::close(fd_);
     fd_ = -1;
-    std::println(stderr, "{}failed to get the attributes for the file: {}",
-                 error_prefix(color), path);
+    core::logger.error("failed to get the attributes for the file: {}", path);
     return false;
   }
   size_ = static_cast<size_t>(st.st_size);
@@ -97,8 +94,7 @@ bool MappedFile::open(std::string_view path, size_t min_size, ColorMode color) {
     if (ftruncate(fd_, static_cast<off_t>(min_size)) < 0) {
       ::close(fd_);
       fd_ = -1;
-      std::println(stderr, "{}failed to truncate the file: {}",
-                   error_prefix(color), path);
+      core::logger.error("failed to truncate the file: {}", path);
       return false;
     }
     size_ = min_size;
@@ -110,8 +106,7 @@ bool MappedFile::open(std::string_view path, size_t min_size, ColorMode color) {
     data_ = nullptr;
     ::close(fd_);
     fd_ = -1;
-    std::println(stderr, "{}failed to map the file to memory: {}",
-                 error_prefix(color), path);
+    core::logger.error("failed to map the file to memory: {}", path);
     return false;
   }
 #endif

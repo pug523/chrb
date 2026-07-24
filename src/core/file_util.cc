@@ -15,7 +15,6 @@
 
 #include "build/build_config.h"
 #include "core/check.h"
-#include "core/core.h"
 
 #if CHRB_BUILD_FLAG(IS_OS_LINUX)
 #include <asm/unistd_64.h>

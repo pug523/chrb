@@ -9,31 +9,22 @@
 
 namespace app {
 
-using ArgStatusPacked = u16;
+using ArgStatusPacked = u8;
 
 enum class ArgStatus : ArgStatusPacked {
   Success = 0,
   PrintHelp = 1 << 0,
   PrintVersion = 1 << 1,
-  UnknownArgument = 1 << 2,
-  InvalidColorMode = 1 << 3,
-  SourceWorldEmpty = 1 << 4,
-  DestinationWorldEmpty = 1 << 5,
-  InvalidDimension = 1 << 6,
-  InvalidRollbackType = 1 << 7,
-  InvalidSourceWorldStructureConfig = 1 << 8,
-  InvalidDestinationWorldStructureConfig = 1 << 9,
-  WholeWorldRollbackNotAllowed = 1 << 10,
-  InvalidNumThreads = 1 << 11,
-  InvalidToml = 1 << 12,
+  ArgParseFailed = 1 << 2,
+  TomlParseFailed = 1 << 3,
+  ValidationFailed = 1 << 4,
 };
 
 ArgStatusPacked parse_args(i32 argc,
                            char** argv,
                            region::RollbackConfig* config);
 
-// validate config after parsing and report errors
-// returns ArgStatus::Success when everything is valid
-ArgStatusPacked validate_config(region::RollbackConfig* config);
+// validates config and returns whether config is ok or not
+bool validate_config(region::RollbackConfig* config);
 
 }  // namespace app

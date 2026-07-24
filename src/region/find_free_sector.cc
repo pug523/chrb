@@ -7,8 +7,6 @@
 #include <cstddef>
 #include <vector>
 
-#include "core/core.h"
-
 namespace region {
 
 i32 find_free_sector(const std::vector<bool>& used, u8 needed) {

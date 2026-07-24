@@ -4,34 +4,6 @@
 
 #pragma once
 
-#include <cstdlib>
-#include <print>
+#include "fpag/base/debug/check.h"
 
-#include "build/build_config.h"
-
-namespace core {
-
-[[noreturn]] inline void dcheck_fail(const char* expr,
-                                     const char* file,
-                                     int line,
-                                     const char* func) {
-  std::print(stderr, "DCHECK failed: {}\n  at {}:{} ({})\n", expr, file, line,
-             func);
-  std::abort();
-}
-
-}  // namespace core
-
-#if CHRB_BUILD_FLAG(IS_DEBUG)
-#define DCHECK(expr)                                            \
-  do {                                                          \
-    if (__builtin_expect(!(expr), 0)) {                         \
-      ::core::dcheck_fail(#expr, __FILE__, __LINE__, __func__); \
-    }                                                           \
-  } while (false)
-#else
-#define DCHECK(expr) \
-  do {               \
-    (void)(expr);    \
-  } while (false)
-#endif
+#define DCHECK(expr) FPAG_DCHECK(expr)

@@ -11,9 +11,9 @@
 #include <utility>
 
 #include "app/parse_args.h"
-#include "core/cli/log_prefix.h"
 #include "core/core.h"
 #include "core/file_util.h"
+#include "core/logger.h"
 #include "region/rollback_config.h"
 #include "region/rollback_executor.h"
 
@@ -33,7 +33,8 @@ i32 rollback(i32 argc, char** argv) {
   const ArgStatusPacked arg_result = parse_args(argc, argv, &config);
 
   if (config.verbose) {
-    std::print("{}", region::dump_rollback_config(config));
+    core::logger.info("loaded config: {}",
+                      region::dump_rollback_config(config));
   }
 
   if (arg_status_contains(arg_result, ArgStatus::PrintHelp) ||
@@ -53,12 +54,10 @@ i32 rollback(i32 argc, char** argv) {
   {
     bool dir_exists = true;
     if (!core::is_dir(config.src_world)) {
-      std::println(stderr, "{}directory not found: {}",
-                   core::error_prefix(config.color_mode), config.src_world);
+      core::logger.error("src directory not found: {}", config.src_world);
       dir_exists = false;
     } else if (!core::is_dir(config.dest_world)) {
-      std::println(stderr, "{}directory not found: {}",
-                   core::error_prefix(config.color_mode), config.dest_world);
+      core::logger.error("dest directory not found: {}", config.dest_world);
       dir_exists = false;
     }
     if (!dir_exists) {
@@ -79,14 +78,12 @@ i32 rollback(i32 argc, char** argv) {
 
   if (!config.silent) {
     if (successfull_region_count > 0) {
-      std::println("{}{:5} full regions processed successfully",
-                   core::info_prefix(config.color_mode),
-                   successfull_region_count);
+      core::logger.info("{:5} full regions processed successfully",
+                        successfull_region_count);
     }
     if (successfull_chunk_count > 0) {
-      std::println("{}{:5} chunks processed successfully",
-                   core::info_prefix(config.color_mode),
-                   successfull_chunk_count);
+      core::logger.info("{:5} chunks processed successfully",
+                        successfull_chunk_count);
     }
   }
 
@@ -98,16 +95,12 @@ i32 rollback(i32 argc, char** argv) {
     }
     failed_regions_string.append("]");
 
-    std::print(R"({}{:5} full regions failed
-failed_regions = {}
-)",
-               core::error_prefix(config.color_mode), failed_region_count,
-               failed_regions_string);
+    core::logger.error("{:5} full regions failed\nfailed_regions = {}",
+                       failed_region_count, failed_regions_string);
     ++result;
   }
   if (failed_chunk_count > 0) {
-    std::println("{}{:5} chunks failed", core::error_prefix(config.color_mode),
-                 failed_chunk_count);
+    core::logger.error("{:5} chunks failed", failed_chunk_count);
     ++result;
   }
 

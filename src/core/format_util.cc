@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "core/core.h"
 #include "region/chunk_position.h"
 
 namespace core {
@@ -32,7 +31,7 @@ std::string format_opt_int(std::optional<i32> i) {
   if (i.has_value()) {
     return std::format("{}", i.value());
   } else {
-    return "\"undefined\"";
+    return "\"none\"";
   }
 }
 

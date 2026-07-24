@@ -8,9 +8,10 @@
 #include <string>
 #include <string_view>
 
+#include "build/build_config.h"
 #include "core/check.h"
-#include "core/cli/log_prefix.h"
 #include "core/core.h"
+#include "fpag/base/color_mode.h"
 
 namespace core {
 
@@ -25,9 +26,7 @@ class MappedFile {
   MappedFile(MappedFile&&) = default;
   MappedFile& operator=(MappedFile&&) = default;
 
-  bool open(std::string_view path,
-            size_t min_size = 0,
-            ColorMode color = ColorMode::Never);
+  bool open(std::string_view path, size_t min_size = 0);
   void close();
 
   bool resize(size_t new_size);

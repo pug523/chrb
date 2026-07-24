@@ -4,75 +4,11 @@
 
 #pragma once
 
-#include <cstddef>
-#include <functional>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <unordered_set>
-#include <vector>
-
-#include "core/core.h"
+#include "fpag/arg/parser.h"
 
 namespace app {
 
-struct ArgDef {
-  std::string_view long_name;   // e.g. "--src"
-  std::string_view short_name;  // e.g. "-s"  (empty = no short form)
-  std::string_view meta;        // e.g. "<path>"
-  std::string_view description;
-
-  // false for flags like --help, --verbose
-  bool takes_value;
-
-  bool required;
-
-  // called when the arg is matched
-  // `value` is the next token if takes_value==true, else empty
-  std::function<void(std::string_view value)> on_match;
-};
-
-enum class ParseResult : u8 {
-  Ok,
-  PrintHelp,
-  PrintVersion,
-  UnknownArgument,
-  MissingValue,
-  ValidationError,
-};
-
-class ArgParser {
- public:
-  // program name shown in help
-  explicit ArgParser(std::string_view program_name,
-                     std::string_view version,
-                     std::string_view tagline = "");
-
-  void add(ArgDef def);
-  void add_builtin_args();
-
-  void provided_keys(const std::unordered_set<std::string>&& provided_keys);
-
-  // run the parse, returns ok on success
-  // on validationerror, caller should call validate() results separately
-  ParseResult parse(i32 argc, char** argv);
-
-  bool validate_required() const;
-
-  void print_help() const;
-  void print_version() const;
-
- private:
-  std::optional<size_t> find_index(std::string_view token) const;
-  void print_usage(bool color) const;
-
-  std::string_view program_name_;
-  std::string_view version_;
-  std::string_view tagline_;
-  std::vector<ArgDef> defs_;
-  std::vector<bool> matched_;
-  std::unordered_set<std::string> provided_keys_;
-  bool handle_builtin_args_ = false;
-};
+arg::Parser build_preprocess_parser();
+arg::Parser build_parser();
 
 }  // namespace app

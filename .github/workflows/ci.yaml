@@ -27,6 +27,7 @@ jobs:
         build_type: [debug, release]
         cc: [clang]
         cxx: [clang++]
+        llvm_version: [22.1.8]
         os:
           - ubuntu-24.04
           - macos-26
@@ -57,14 +58,13 @@ jobs:
           submodules: recursive
 
       - name: Setup build environment
-        uses: pug523/actions_collection/cxx_setup@ab4e73e94a554225a3655a302447818146648f46
+        uses: pug523/actions/cxx-setup@b86086d028214a9933e4bfd80f0a19a3d067716b
         with:
           os: ${{ runner.os }}
           plat: ${{ matrix.plat }}
           arch: ${{ matrix.arch }}
-          cc: ${{ matrix.cc }}
-          cxx: ${{ matrix.cxx }}
           build_type: ${{ matrix.build_type }}
+          llvm_version: ${{ matrix.llvm_version }}
 
       - name: Configure
         shell: bash

@@ -6,8 +6,8 @@
 
 #include <cstddef>
 
-#include "core/core.h"
 #include "core/mem/mapped_file.h"
+#include "fpag/base/numeric.h"
 #include "region/location.h"
 #include "region/rollback_config.h"
 

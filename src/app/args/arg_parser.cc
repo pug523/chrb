@@ -3,6 +3,7 @@
 // which can be found in the LICENSE file.
 
 #include "app/args/arg_parser.h"
+
 #include <utility>
 
 #include "fpag/arg/macro.h"

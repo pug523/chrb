@@ -55,7 +55,7 @@ chrb --src ./my_backup --dest ./my_world --dim nether --type=entities --min-x 35
 Rollback all(region/entities/poi) for all chunks specified in `chunks` that satisfy the chunk range constraint ($c(-1, -2)$ to $c(3, 4)$) 
 
 ```shell
-chrb --src ./my_backup --dest ./my_world --chunks "-300.-300, 0.-1, -2.-1, 3.1" --min-x -5 --min-z -5 --max-x 5 --max-z 5  # This will skip (-300,-300) as it doesn't satisfy chunk range constraint
+chrb --src ./my_backup --dest ./my_world --chunks 0.-1 --chunks -2.-1 --chunks 3.1 --min-x -5 --min-z -5 --max-x 5 --max-z 5  # This will skip (-300,-300) as it doesn't satisfy chunk range constraint
 ```
 
 Rollback all(region/entities/poi) in $c(-1, -2)$ to $c(3, 4)$ in the End using 16 worker threads

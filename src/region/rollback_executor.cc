@@ -21,7 +21,6 @@
 
 #include "build/build_config.h"
 #include "core/check.h"
-#include "core/core.h"
 #include "core/file_util.h"
 #include "core/logger.h"
 #include "core/mem/mapped_file.h"

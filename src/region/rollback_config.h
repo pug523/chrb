@@ -6,10 +6,10 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
-#include "core/core.h"
 #include "fpag/base/color_mode.h"
 #include "region/chunk_position.h"
 #include "region/dimension.h"

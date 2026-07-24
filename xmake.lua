@@ -3,7 +3,7 @@
 -- which can be found in the LICENSE file.
 
 local project_name = "chrb"
-local project_version = "0.4.1"
+local project_version = "0.4.2"
 
 set_project(project_name)
 set_version(project_version)

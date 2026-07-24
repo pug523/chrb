@@ -38,9 +38,8 @@ num_threads = {}
 allow_whole_rollback = {}
 bulk_copy = {}
 dry_run = {}
-silen = {}
+silent = {}
 verbose = {}
-
 )",
       config.src_world, config.dest_world, config.dim_str, config.type_str,
       config.color_str, config.src_world_structure_str,
@@ -71,13 +70,13 @@ std::vector<ChunkPosition> parse_chunks(
   std::vector<std::vector<i32>> chunks;
   chunks.resize(raw_chunks.size());
   for (usize i = 0; i < chunks.size(); ++i) {
-    std::string_view const chunk = raw_chunks[i];
-    usize const dot = chunk.find_first_of('.');
+    const std::string_view chunk = raw_chunks[i];
+    const usize dot = chunk.find_first_of('.');
     if (dot == std::string_view::npos) {
       continue;
     }
-    std::string_view const x = chunk.substr(0, dot);
-    std::string_view const z = chunk.substr(dot);
+    const std::string_view x = chunk.substr(0, dot);
+    const std::string_view z = chunk.substr(dot + 1);
     i32 ix = 0;
     i32 iz = 0;
     auto [xptr, xec] = std::from_chars(x.data(), x.data() + x.size(), ix);

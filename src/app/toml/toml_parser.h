@@ -7,7 +7,6 @@
 #include <string>
 #include <unordered_set>
 
-#include "core/core.h"
 #include "region/rollback_config.h"
 
 namespace app {

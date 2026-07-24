@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "fpag/base/numeric.h"
 
 namespace region {
 

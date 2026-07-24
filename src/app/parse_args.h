@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "core/core.h"
 #include "region/rollback_config.h"
 
 namespace app {

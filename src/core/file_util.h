@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "build/build_config.h"
-#include "core/core.h"
+#include "fpag/base/numeric.h"
 
 namespace core {
 

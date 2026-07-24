@@ -10,7 +10,6 @@
 
 #include "build/build_config.h"
 #include "core/check.h"
-#include "core/core.h"
 #include "fpag/base/color_mode.h"
 
 namespace core {

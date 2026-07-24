@@ -7,7 +7,6 @@
 #include <string_view>
 
 #include "build/build_config.h"
-#include "core/core.h"
 #include "region/rollback_config.h"
 
 #if CHRB_BUILD_FLAG(IS_OS_LINUX)

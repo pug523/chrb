@@ -7,7 +7,6 @@
 #include <string_view>
 
 #include "core/check.h"
-#include "core/core.h"
 
 namespace region {
 

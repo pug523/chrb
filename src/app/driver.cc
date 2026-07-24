@@ -11,7 +11,6 @@
 #include <utility>
 
 #include "app/parse_args.h"
-#include "core/core.h"
 #include "core/file_util.h"
 #include "core/logger.h"
 #include "region/rollback_config.h"

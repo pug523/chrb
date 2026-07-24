@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "core/core.h"
 #include "region/chunk_position.h"
 
 namespace core {

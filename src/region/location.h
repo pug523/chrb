@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "core/core.h"
 #include "core/mem/mapped_file.h"
+#include "fpag/base/numeric.h"
 
 namespace region {
 

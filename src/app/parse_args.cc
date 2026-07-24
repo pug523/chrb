@@ -4,15 +4,16 @@
 
 #include "app/parse_args.h"
 
+#include <optional>
 #include <string>
 #include <string_view>
 // #include <thread>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "app/args/arg_parser.h"
 #include "app/toml/toml_parser.h"
-#include "core/core.h"
 #include "core/file_util.h"
 #include "core/logger.h"
 #include "fpag/arg/error_code.h"
@@ -91,7 +92,7 @@ void process_matches(const arg::Matches& matches,
   config->dest_world_structure =
       region::str_to_world_dir_structure(config->dest_world_structure_str);
 
-  std::vector<std::string_view> raw_chunks =
+  const std::vector<std::string_view> raw_chunks =
       matches.get_all<std::string_view>("chunks").unwrap_or({});
   config->chunks = region::parse_chunks(raw_chunks);
   config->min_x =
@@ -115,7 +116,7 @@ void process_matches(const arg::Matches& matches,
 ArgStatusPacked process(const arg::Matches& matches,
                         region::RollbackConfig* config) {
   process_matches(matches, config);
-  bool vs = validate_config(config);
+  const bool vs = validate_config(config);
   return static_cast<ArgStatusPacked>(vs ? ArgStatus::Success
                                          : ArgStatus::ValidationFailed);
 }
@@ -171,8 +172,7 @@ ArgStatusPacked parse_args(i32 argc,
     }
   }
 
-  arg::ParseResult<arg::Matches> pr =
-      std::move(full_parser).try_parse(argc, argv);
+  arg::ParseResult<arg::Matches> pr = full_parser.try_parse(argc, argv);
   if (pr.is_ok()) {
     return process(std::move(pr).unwrap(), config);
   } else if (pr.is_err()) {

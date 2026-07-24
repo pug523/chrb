@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "build/build_config.h"
-#include "core/core.h"
 #include "region/dimension.h"
 #include "region/region_position.h"
 #include "region/rollback_config.h"

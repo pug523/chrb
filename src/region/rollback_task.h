@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "core/check.h"
-#include "core/core.h"
 #include "region/chunk_position.h"
 #include "region/chunk_range.h"
 #include "region/dimension.h"

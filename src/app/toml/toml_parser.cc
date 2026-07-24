@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "core/check.h"
-#include "core/core.h"
 #include "core/file_util.h"
 #include "region/rollback_config.h"
 #include "toml++/toml.hpp"

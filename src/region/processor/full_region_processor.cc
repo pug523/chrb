@@ -94,8 +94,7 @@ bool FullRegionProcessor::process_one(const i32 rx,
         CreateFileA(tmp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
                     CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (fh == INVALID_HANDLE_VALUE) [[unlikely]] {
-      std::println(stderr, "{}failed to create tmp: {} (in {},{})",
-                   core::error_prefix(config_->color_mode), tmp, rx, rz);
+      core::logger.error("failed to create tmp: {} (in r.{}.{})", tmp, rx, rz);
       return false;
     }
     CloseHandle(fh);

@@ -191,6 +191,8 @@ target("chrb_root_config")
 
   add_defines('CHRB_PROJECT_NAME="' .. project_name .. '"', { public = true })
   add_defines('CHRB_PROJECT_VERSION="' .. project_version .. '"', { public = true })
+  add_defines("NOMINMAX", { public = true })
+
   add_packages("fpag", { public = true })
 
   add_includedirs("src", {public = true})

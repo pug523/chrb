@@ -56,7 +56,7 @@ jobs:
           submodules: recursive
 
       - name: Setup build environment
-        uses: pug523/actions/cxx-setup@b86086d028214a9933e4bfd80f0a19a3d067716b
+        uses: pug523/actions/cxx-setup@eacbdb6dc5006a90076a84f7f3547265c90472c9
         with:
           os: ${{ runner.os }}
           plat: ${{ matrix.plat }}

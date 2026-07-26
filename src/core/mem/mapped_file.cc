@@ -7,7 +7,6 @@
 #include <sys/types.h>
 
 #include <cstddef>
-#include <print>
 #include <string_view>
 
 #include "core/logger.h"

@@ -1,10 +1,10 @@
 package("fpag")
-set_urls("https://github.com/pug523/fpag.git")
-
-add_versions(
-  "419c9bee39f133e7d0bf0adb3928a172dd561f93",
-  "419c9bee39f133e7d0bf0adb3928a172dd561f93"
+set_urls(
+  "https://github.com/pug523/fpag.git",
+  "https://github.com/pug523/fpag/archive/refs/tags/$(version).zip"
 )
+
+-- add_versions()
 
 add_configs("libunwind", {
   description = "Use libunwind for stack tracing",
@@ -37,24 +37,24 @@ local function config()
   return {}
 end
 
-add_deps("xxhash v0.8.3", {
-  external = true,
-  system = false,
-  configs = config(),
-  -- configs = { cxxflags = "-stdlib=libc++", ldflags = "-stdlib=libc++" },
-})
-add_deps("fmt 12.1.0", {
-  external = false,
+-- add_deps("xxhash v0.8.3", {
+--   private = true,
+--   system = false,
+--   configs = config(),
+--   -- configs = { cxxflags = "-stdlib=libc++", ldflags = "-stdlib=libc++" },
+-- })
+add_deps("fmt 12.2.0", {
+  private = false,
   system = false,
   configs = config(),
   -- configs = { cxxflags = "-stdlib=libc++", ldflags = "-stdlib=libc++" },
 })
 
 on_load(function(package)
-  package:add("deps", "fmt")
+  -- package:add("deps", "fmt")
   if package:config("libunwind") and package:is_plat("linux") then
     package:add("deps", "libunwind v1.8.3", {
-      external = true,
+      private = false,
       system = false,
       configs = config(),
       -- configs = { cxxflags = "-stdlib=libc++", ldflags = "-stdlib=libc++" },

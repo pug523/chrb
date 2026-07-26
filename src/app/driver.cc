@@ -6,7 +6,6 @@
 
 #include <cstddef>  // NOLINT
 #include <format>
-#include <print>
 #include <string>
 #include <utility>
 

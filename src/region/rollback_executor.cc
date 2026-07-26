@@ -10,7 +10,6 @@
 #include <format>
 #include <limits>
 #include <mutex>
-#include <print>
 #include <queue>
 #include <string>
 #include <string_view>
@@ -471,7 +470,6 @@ void RollbackExecutor::start_workers() {
       std::queue<RollbackTask> copied_queue = region_queue_;
       core::logger.info("scheduled tasks:\n\n{}",
                         dump_and_clear_scheduled_tasks(&copied_queue));
-      std::println("{}", dump_and_clear_scheduled_tasks(&copied_queue));
     }
   }
 

@@ -432,7 +432,7 @@ void RollbackExecutor::run_full_copy_batch() {
   }
 
   const auto on_success = [&](size_t ci) {
-    successfull_region_count_.fetch_add(1);
+    successful_region_count_.fetch_add(1);
     if (config_->verbose) {
       const auto& t = full_tasks[task_idx[ci]];
       core::logger.debug("copied region r({:4}, {:4})", t.region.x, t.region.z);
@@ -578,7 +578,7 @@ void RollbackExecutor::rollback_region(i32 rx,
     failed_regions_.emplace_back(rx, rz);
     lock.unlock();
   } else {
-    successfull_region_count_.fetch_add(1);
+    successful_region_count_.fetch_add(1);
   }
 }
 
@@ -629,8 +629,8 @@ void RollbackExecutor::rollback_chunks(i32 rx,
   }
 
   DCHECK(chunks_processed > 0);
-  successfull_chunk_count_.fetch_add(static_cast<u64>(chunks_processed));
-  // successfull_chunk_count_.fetch_add(
+  successful_chunk_count_.fetch_add(static_cast<u64>(chunks_processed));
+  // successful_chunk_count_.fetch_add(
   //     static_cast<u64>(chunks_tried - failed_local));
   // failed_chunk_count_.fetch_add(static_cast<u64>(failed_local));
 }

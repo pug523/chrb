@@ -46,13 +46,11 @@ class RollbackExecutor {
   void start();
   void flush();
 
-  inline u64 successfull_region_count() const {
-    return successfull_region_count_;
+  inline u64 successful_region_count() const {
+    return successful_region_count_;
   }
   inline u64 failed_region_count() const { return failed_region_count_; }
-  inline u64 successfull_chunk_count() const {
-    return successfull_chunk_count_;
-  }
+  inline u64 successful_chunk_count() const { return successful_chunk_count_; }
   inline u64 failed_chunk_count() const { return failed_chunk_count_; }
 
   inline const std::vector<RegionPosition>& failed_regions() const {
@@ -110,9 +108,9 @@ class RollbackExecutor {
 
   static constexpr size_t kAlignSize = 64;
 
-  alignas(kAlignSize) std::atomic<u64> successfull_region_count_ = 0;
+  alignas(kAlignSize) std::atomic<u64> successful_region_count_ = 0;
   alignas(kAlignSize) std::atomic<u64> failed_region_count_ = 0;
-  alignas(kAlignSize) std::atomic<u64> successfull_chunk_count_ = 0;
+  alignas(kAlignSize) std::atomic<u64> successful_chunk_count_ = 0;
   alignas(kAlignSize) std::atomic<u64> failed_chunk_count_ = 0;
   alignas(kAlignSize) std::atomic<bool> stop_ = false;
 

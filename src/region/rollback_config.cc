@@ -75,16 +75,16 @@ std::vector<ChunkPosition> parse_chunks(
     if (dot == std::string_view::npos) {
       continue;
     }
-    const std::string_view x = chunk.substr(0, dot);
-    const std::string_view z = chunk.substr(dot + 1);
-    i32 ix = 0;
-    i32 iz = 0;
-    auto [xptr, xec] = std::from_chars(x.data(), x.data() + x.size(), ix);
-    auto [zptr, zec] = std::from_chars(z.data(), z.data() + z.size(), iz);
+    const std::string_view xs = chunk.substr(0, dot);
+    const std::string_view zs = chunk.substr(dot + 1);
+    i32 x = 0;
+    i32 z = 0;
+    auto [xptr, xec] = std::from_chars(xs.data(), xs.data() + xs.size(), x);
+    auto [zptr, zec] = std::from_chars(zs.data(), zs.data() + zs.size(), z);
     if (xec != std::errc() || zec != std::errc()) {
       continue;
     }
-    chunks[i] = std::vector<i32>{ix, iz};
+    chunks[i] = std::vector<i32>{x, z};
   }
   return parse_chunks(chunks);
 }

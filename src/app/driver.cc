@@ -69,19 +69,19 @@ i32 rollback(i32 argc, char** argv) {
   executor.start();
   executor.flush();
 
-  const u64 successfull_region_count = executor.successfull_region_count();
-  const u64 successfull_chunk_count = executor.successfull_chunk_count();
+  const u64 successful_region_count = executor.successful_region_count();
+  const u64 successful_chunk_count = executor.successful_chunk_count();
   const u64 failed_region_count = executor.failed_region_count();
   const u64 failed_chunk_count = executor.failed_chunk_count();
 
   if (!config.silent) {
-    if (successfull_region_count > 0) {
+    if (successful_region_count > 0) {
       core::logger.info("{:5} full regions processed successfully",
-                        successfull_region_count);
+                        successful_region_count);
     }
-    if (successfull_chunk_count > 0) {
+    if (successful_chunk_count > 0) {
       core::logger.info("{:5} chunks processed successfully",
-                        successfull_chunk_count);
+                        successful_chunk_count);
     }
   }
 

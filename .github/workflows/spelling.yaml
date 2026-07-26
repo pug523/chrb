@@ -1,0 +1,26 @@
+name: Spell checks
+
+permissions:
+  contents: read
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CLICOLOR: 1
+
+jobs:
+  spelling:
+    name: Spell check with typos
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        submodules: recursive
+
+    - name: Spell check repository
+      uses: crate-ci/typos@3bc303c295c081add5df4a4d52a1e117f2fb2dce

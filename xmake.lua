@@ -68,18 +68,18 @@ local function source_files()
     return files
 end
 
-add_requires("fpag 419c9bee39f133e7d0bf0adb3928a172dd561f93", {
+add_requires("fpag 4d988baf45ddd1e9c5a0f19c45030622c67f0edb", {
   system = false,
-  external = true,
+  private = true,
   configs = {
     stdlib = get_config("stdlib"),
     libunwind = get_config("libunwind"),
   },
 })
-add_requires("toml++ v3.4.0", { system = false, configs = table.join(stdlib_config(), { header_only = true }) })
+add_requires("toml++ v3.4.0", { system = false, private = true, configs = table.join(stdlib_config(), { header_only = true }) })
 
 if has_config("tests") then
-  add_requires("catch2 v3.13.0", { system = false, configs = stdlib_config() })
+  add_requires("catch2 v3.15.2", { system = false, private = true, configs = stdlib_config() })
 end
 
 -- Tasks

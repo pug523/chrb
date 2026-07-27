@@ -17,6 +17,10 @@ on:
     paths: *ci_paths
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build and test (${{ matrix.plat }}-${{ matrix.arch }}-${{ matrix.build_type }})

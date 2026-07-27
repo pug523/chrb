@@ -37,14 +37,17 @@ jobs:
             plat: linux
             arch: x86_64
             stdlib: libc++
+            static_stdlib: true
           - os: macos-26
             plat: macosx
             arch: arm64
             stdlib: libc++
+            static_stdlib: false
           - os: windows-2025-vs2026
             plat: windows
             arch: x64
             stdlib: msvc
+            static_stdlib: false
     env:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cxx }}
@@ -75,6 +78,7 @@ jobs:
             --sanitizers=y \
             --toolchain=clang \
             --stdlib="${{ matrix.stdlib }}" \
+            --static-stdlib="${{ matrix.static_stdlib }}" \
             -p "${{ matrix.plat }}" \
             -a "${{ matrix.arch }}"
 

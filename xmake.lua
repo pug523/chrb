@@ -19,6 +19,7 @@ option("lto", { default = false, description = "use link time optimization on re
 option("tests", { default = false, description = "build unit tests" })
 option("lib", { default = false, description = "build as static library"})
 option("stdlib", { default = "libstdc++", description = "stl to use" })
+option("static-stdlib", { default = false, description = "static link stdlib" })
 
 includes("src/build/xmake/fpag.lua")
 
@@ -49,11 +50,12 @@ end
 
 -- Helper functions
 local function stdlib_config()
+    local result = { exceptions = "none" }
     if is_clang and not is_plat("windows") and has_config("stdlib") then
         local std = get_config("stdlib")
-        return { cxxflags = "-stdlib=" .. std, ldflags = "-stdlib=" .. std, exceptions = "none" }
+        table.join2(result, { cxxflags = "-stdlib=" .. std, ldflags = "-stdlib=" .. std })
     end
-    return { exceptions = "none" }
+    return result
 end
 
 local subdirs = "src tests"
@@ -266,6 +268,12 @@ target("chrb_root_config")
   end
   if has_config("unitybuild") then
     add_rules("c++.unity_build", { batchsize = 12 })
+  end
+  if has_config("static-stdlib") and (is_gcc or is_clang) then
+    add_cxxflags("-static-libstdc++", { public = true })
+    if is_clang and get_config("stdlib") == "libc++" then
+      add_ldflags("-Wl,-Bstatic", "-lc++", "-lc++abi", "-Wl,-Bdynamic", { public = true })
+    end
   end
 target_end()
 

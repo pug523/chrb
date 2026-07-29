@@ -3,30 +3,30 @@
 // which can be found in the LICENSE file.
 
 #include "catch2/catch_session.hpp"
-#include "fpag/base/console.h"
-#include "fpag/base/debug/signal_handler.h"
-#include "fpag/base/debug/terminate_handler.h"
-#include "fpag/base/exit_handler.h"
 #include "fpag/base/numeric.h"
-#include "fpag/base/profiler/profile_scope.h"
-#include "fpag/base/profiler/profiler.h"
-#include "fpag/base/profiler/time_trace_formatter.h"
+#include "fpag/debug/exit_handler.h"
+#include "fpag/debug/profiler/profile_scope.h"
+#include "fpag/debug/profiler/profiler.h"
+#include "fpag/debug/profiler/time_trace_formatter.h"
+#include "fpag/debug/signal_handler.h"
+#include "fpag/debug/terminate_handler.h"
+#include "fpag/term/console.h"
 
 #define CATCH_CONFIG_RUNNER
 
 void init() {
-  base::register_console();
-  base::register_exit_handler();
-  base::register_terminate_handler();
-  base::register_signal_handlers();
+  term::register_console();
+  debug::register_exit_handler();
+  debug::register_terminate_handler();
+  debug::register_signal_handlers();
 
-  base::Profiler::global().start();
+  debug::Profiler::global().start();
 }
 
 void clean_up() {
-  base::Profiler::global().stop();
-  base::TimeTraceFormatter::write_to_file("test_time_trace.json",
-                                          base::Profiler::global().events());
+  debug::Profiler::global().stop();
+  debug::TimeTraceFormatter::write_to_file("test_time_trace.json",
+                                           debug::Profiler::global().events());
 }
 
 i32 run_tests(i32 argc, char** argv) {

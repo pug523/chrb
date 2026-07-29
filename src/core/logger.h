@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "fpag/base/color_style.h"
 #include "fpag/logging/log_level.h"
 #include "fpag/logging/sink/stdout_sink.h"
 #include "fpag/logging/sync/sync_logger.h"
+#include "fpag/term/color_style.h"
 
 namespace core {
 
@@ -16,6 +16,6 @@ using Logger =
 
 extern Logger logger;
 
-void init_logger(base::ColorStyle color_mode);
+void init_logger(term::ColorStyle color_mode);
 
 }  // namespace core

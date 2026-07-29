@@ -58,19 +58,19 @@ local function stdlib_config()
     return result
 end
 
-local subdirs = "src tests"
+-- local subdirs = "src tests"
 local function source_files()
-    local files = os.files("src/**.cc")
-    table.join2(files, os.files("src/**.h"))
-
-    if has_config("tests") then
-        table.join2(files, os.files("tests/**.cc"))
-        table.join2(files, os.files("tests/**.h"))
-    end
-    return files
+  local files = {}
+  table.join2(files, os.files("src/**.cc"))
+  table.join2(files, os.files("src/**.h"))
+  table.join2(files, os.files("tests/**.cc"))
+  table.join2(files, os.files("tests/**.h"))
+  table.join2(files, os.files("benchmarks/**.cc"))
+  table.join2(files, os.files("benchmarks/**.h"))
+  return files
 end
 
-add_requires("fpag 71f3c867ed59d23bd8a08d22b8f4af54a8afe5e2", {
+add_requires("fpag 83170848a2638c0a0f1495ed08e0f8b495775869", {
   system = false,
   private = true,
   configs = {

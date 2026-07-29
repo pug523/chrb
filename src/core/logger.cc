@@ -4,18 +4,18 @@
 
 #include "core/logger.h"
 
-#include "fpag/base/console.h"
 #include "fpag/logging/sync/sync_logger.h"
 #include "fpag/mem/page_allocator.h"
+#include "fpag/term/console.h"
 
 namespace core {
 
 Logger logger;
 
-void init_logger(base::ColorStyle color_style) {
+void init_logger(term::ColorStyle color_style) {
   logger.init(logging::StdoutSink(
-      static_cast<char*>(mem::allocate_pages(mem::kPageSize)), mem::kPageSize,
-      color_style, true));
+      static_cast<char*>(mem::allocate_pages(mem::page_size())),
+      mem::page_size(), color_style, true));
 }
 
 }  // namespace core

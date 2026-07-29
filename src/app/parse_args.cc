@@ -48,7 +48,7 @@ bool process_partial_matches(const arg::Matches& matches,
     auto res = matches.get<std::string_view>("color");
     if (res.is_ok()) {
       config->color_str = std::move(res).unwrap();
-      config->color_mode = base::str_to_color_mode(config->color_str);
+      config->color_mode = term::str_to_color_mode(config->color_str);
     } else {
       has_error = true;
     }
@@ -144,8 +144,8 @@ ArgStatusPacked parse_args(i32 argc,
     }
   }
   has_error |= process_partial_matches(partial_matches, config);
-  const base::ColorStyle color_style =
-      base::console_color_style(base::Stream::Stdout, config->color_mode);
+  const term::ColorStyle color_style =
+      term::console_color_style(term::Stream::Stdout, config->color_mode);
   core::init_logger(color_style);
 
   if (has_error) {
@@ -194,11 +194,11 @@ ArgStatusPacked parse_args(i32 argc,
 bool validate_config(region::RollbackConfig* config) {
   bool is_ok = true;
 
-  config->color_mode = base::str_to_color_mode(config->color_str);
-  if (config->color_mode == base::ColorMode::Unknown) {
+  config->color_mode = term::str_to_color_mode(config->color_str);
+  if (config->color_mode == term::ColorMode::Unknown) {
     core::logger.error("invalid color mode: ", config->color_str);
     is_ok = false;
-    config->color_mode = base::ColorMode::Auto;
+    config->color_mode = term::ColorMode::Auto;
   }
 
   if (config->src_world.empty()) {

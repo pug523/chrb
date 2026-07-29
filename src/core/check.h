@@ -4,6 +4,6 @@
 
 #pragma once
 
-#include "fpag/base/debug/check.h"
+#include "fpag/debug/check.h"
 
 #define DCHECK(expr) FPAG_DCHECK(expr)

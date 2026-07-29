@@ -10,7 +10,7 @@
 #include <thread>
 #include <vector>
 
-#include "fpag/base/color_mode.h"
+#include "fpag/term/color_mode.h"
 #include "region/chunk_position.h"
 #include "region/dimension.h"
 #include "region/rollback_type.h"
@@ -28,7 +28,7 @@ struct RollbackConfig {
   std::string type_str = "all";
   RollbackType type = RollbackType::All;
   std::string color_str = "auto";
-  base::ColorMode color_mode = base::ColorMode::Auto;
+  term::ColorMode color_mode = term::ColorMode::Auto;
   std::string src_world_structure_str = "auto";
   WorldDirectoryStructureConfig src_world_structure =
       WorldDirectoryStructureConfig::Auto;

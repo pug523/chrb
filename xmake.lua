@@ -70,7 +70,7 @@ local function source_files()
   return files
 end
 
-add_requires("fpag 210a64f16383541bb138216b8629bb541a665c5f", {
+add_requires("fpag fa5a9639709447a45ce1b7cbda1dbf829944d5c6", {
   system = false,
   private = true,
   configs = {

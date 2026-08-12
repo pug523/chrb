@@ -25,8 +25,8 @@ void init() {
 
 void clean_up() {
   debug::Profiler::global().stop();
-  debug::TimeTraceFormatter::write_to_file("test_time_trace.json",
-                                           debug::Profiler::global().events());
+  debug::TimeTraceFormatter::write_to_file(
+      "test_time_trace.json", debug::Profiler::global().copy_events());
 }
 
 i32 run_tests(i32 argc, char** argv) {

@@ -26,7 +26,7 @@ includes("src/build/xmake/fpag.lua")
 set_policy("build.ccache", true)
 set_policy("check.auto_ignore_flags", false)
 set_policy("build.progress_style", "multirow")
-set_policy("build.c++.msvc.runtime", "MD")
+-- set_policy("build.c++.msvc.runtime", "MD")
 
 add_rules("mode.debug", "mode.release", "mode.releasedbg")
 add_rules("plugin.compile_commands.autoupdate")

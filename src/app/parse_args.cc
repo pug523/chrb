@@ -204,14 +204,14 @@ bool validate_config(region::RollbackConfig* config) {
   if (config->src_world.empty()) {
     core::logger.error("source world is not specified");
     is_ok = false;
-  } else if (core::is_dir(config->src_world)) {
+  } else if (!core::is_dir(config->src_world)) {
     core::logger.error("source world directory does not exist");
     is_ok = false;
   }
   if (config->dest_world.empty()) {
     core::logger.error("destination world is not specified");
     is_ok = false;
-  } else if (core::is_dir(config->dest_world)) {
+  } else if (!core::is_dir(config->dest_world)) {
     core::logger.error("destination world directory does not exist");
     is_ok = false;
   }
